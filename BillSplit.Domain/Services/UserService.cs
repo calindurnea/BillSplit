@@ -14,4 +14,9 @@ public class UserService : IUserService
     {
         throw new NotImplementedException();
     }
+
+    public Task<IEnumerable<UserInfo>> Get()
+    {
+        throw new NotImplementedException();
+    }
 }

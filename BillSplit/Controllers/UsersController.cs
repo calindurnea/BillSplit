@@ -1,5 +1,6 @@
 ﻿using BillSplit.Domain.Models.User;
 using BillSplit.Models.Requests;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -42,6 +43,7 @@ public class UsersController : ControllerBase
         return CreatedAtAction(nameof(Get), new { id = id });
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task Login()
     {

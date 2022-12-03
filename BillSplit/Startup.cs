@@ -1,4 +1,6 @@
 using BillSplit.Configuration;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 
 namespace BillSplit;
@@ -23,6 +25,17 @@ public class Startup
         services.AddServices();
         services.AddValidators();
 
+        services.AddOutputCache();
+
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+        services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+            .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+            .RequireAuthenticatedUser()
+            .Build();
+        });
+
         // In production, the React files will be served from this directory
         services.AddSpaStaticFiles(configuration =>
         {
@@ -33,15 +46,16 @@ public class Startup
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+            options.RoutePrefix = "swagger";
+        });
+
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-                options.RoutePrefix = "swagger";
-            });
         }
         else
         {
@@ -50,11 +64,15 @@ public class Startup
             app.UseHsts();
         }
 
+
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseSpaStaticFiles();
-
+        app.UseOutputCache();
         app.UseRouting();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         app.UseEndpoints(endpoints =>
         {
