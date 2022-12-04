@@ -3,21 +3,25 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit", "BillSplit\BillSplit.csproj", "{371A4DB9-2C9E-4525-9674-97D541C038B4}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Domain", "BillSplit.Domain\BillSplit.Domain.csproj", "{83D24DB3-9CD4-4FB7-A6E4-F7C5A50E18AF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Infrastructure", "BillSplit.Infrastructure\BillSplit.Infrastructure.csproj", "{62F5AA52-32AF-4B43-9F09-716A0D1CA288}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{BCCA257F-45CA-4B2C-8813-23B3664C54F6}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		NuGet.Config = NuGet.Config
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{57B67788-5B74-4CC9-A101-324E03AA4F3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillSplit.Tests", "BillSplit.Tests\BillSplit.Tests.csproj", "{E956D5E9-31A5-4FB5-9329-C3F78D20B6FE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Api.Tests", "BillSplit.Api.Tests\BillSplit.Api.Tests.csproj", "{E956D5E9-31A5-4FB5-9329-C3F78D20B6FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillSplit.Domain.Tests", "BillSplit.Domain.Tests\BillSplit.Domain.Tests.csproj", "{5D629AC5-C5F6-46FA-B08E-E41DBE4F0838}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Domain.Tests", "BillSplit.Domain.Tests\BillSplit.Domain.Tests.csproj", "{5D629AC5-C5F6-46FA-B08E-E41DBE4F0838}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillSplit.Infrastructure.Tests", "BillSplit.Infrastructure.Tests\BillSplit.Infrastructure.Tests.csproj", "{74359DB0-AB7A-4575-93C7-6EAC4CDED792}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Infrastructure.Tests", "BillSplit.Infrastructure.Tests\BillSplit.Infrastructure.Tests.csproj", "{74359DB0-AB7A-4575-93C7-6EAC4CDED792}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Api", "BillSplit.Api\BillSplit.Api.csproj", "{5B209C2E-35CE-4F73-9049-2A5BD677F5F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,10 +29,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{371A4DB9-2C9E-4525-9674-97D541C038B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{371A4DB9-2C9E-4525-9674-97D541C038B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{371A4DB9-2C9E-4525-9674-97D541C038B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{371A4DB9-2C9E-4525-9674-97D541C038B4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{83D24DB3-9CD4-4FB7-A6E4-F7C5A50E18AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{83D24DB3-9CD4-4FB7-A6E4-F7C5A50E18AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83D24DB3-9CD4-4FB7-A6E4-F7C5A50E18AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -49,6 +49,10 @@ Global
 		{74359DB0-AB7A-4575-93C7-6EAC4CDED792}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74359DB0-AB7A-4575-93C7-6EAC4CDED792}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74359DB0-AB7A-4575-93C7-6EAC4CDED792}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B209C2E-35CE-4F73-9049-2A5BD677F5F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B209C2E-35CE-4F73-9049-2A5BD677F5F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B209C2E-35CE-4F73-9049-2A5BD677F5F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B209C2E-35CE-4F73-9049-2A5BD677F5F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

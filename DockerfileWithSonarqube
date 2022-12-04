@@ -1,0 +1,68 @@
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS restore
+EXPOSE 80
+EXPOSE 443
+
+## Arguments for setting the Sonarqube Token and the Project Key
+ARG SONAR_TOKEN
+ARG SONAR_PRJ_KEY
+
+## Setting the Sonarqube Organization and Uri
+ENV SONAR_ORG "BillSplit"
+ENV SONAR_HOST "http://localhost:9000/"
+
+## Install Java, because the sonarscanner needs it.
+#RUN mkdir /usr/share/man/man1/
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y openjdk-11-jre
+
+## Install sonarscanner
+RUN dotnet tool install --global dotnet-sonarscanner --version 5.9.0
+
+## Install report generator
+RUN dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.1.12
+
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+COPY NuGet.Config ./
+COPY Directory.Build.props ./
+COPY BillSplit/BillSplit.csproj  ./BillSplit/
+COPY BillSplit.Domain/BillSplit.Domain.csproj ./BillSplit.Domain/
+COPY BillSplit.Infrastructure/BillSplit.Infrastructure.csproj ./BillSplit.Infrastructure/
+
+COPY BillSplit.Tests/BillSplit.Tests.csproj ./BillSplit.Tests/
+COPY BillSplit.Domain.Tests/BillSplit.Domain.Tests.csproj ./BillSplit.Domain.Tests/
+COPY BillSplit.Infrastructure.Tests/BillSplit.Infrastructure.Tests.csproj ./BillSplit.Infrastructure.Tests/
+
+COPY BillSplit.sln .
+
+RUN dotnet restore
+
+COPY . .
+
+FROM restore as build
+
+## Start scanner
+RUN dotnet sonarscanner begin \
+	/o:"$SONAR_ORG" \
+	/k:"$SONAR_PRJ_KEY" \
+	/d:sonar.host.url="$SONAR_HOST" \
+	/d:sonar.login="$SONAR_TOKEN" \ 
+	/d:sonar.coverageReportPaths="coverage/SonarQube.xml"
+
+RUN dotnet build
+
+## Run dotnet test setting the output on the /coverage folder
+RUN dotnet test test/WebApp.Tests/*.csproj --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+## Create the code coverage file in sonarqube format using the cobertura file generated from the dotnet test command
+RUN reportgenerator "-reports:./coverage/*/coverage.cobertura.xml" "-targetdir:coverage" "-reporttypes:SonarQube"
+
+FROM build AS publish
+RUN dotnet publish "BillSplit.csproj" --output /app/ --configuration Release
+
+## Stop scanner
+RUN dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
+
+FROM mcr.microsoft.com/dotnet/aspnet:7.0
+WORKDIR /app
+COPY --from=publish /app .
+ENTRYPOINT ["dotnet", "BillSplit.dll"]

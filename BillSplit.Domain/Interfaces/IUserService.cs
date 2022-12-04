@@ -1,6 +1,6 @@
 ﻿using BillSplit.Domain.Models.User;
 
-namespace BillSplit.Controllers;
+namespace BillSplit.Domain.Interfaces;
 
 public interface IUserService
 {

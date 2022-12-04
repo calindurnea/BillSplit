@@ -1,4 +1,4 @@
-﻿using BillSplit.Controllers;
+﻿using BillSplit.Domain.Interfaces;
 using BillSplit.Domain.Models.User;
 
 namespace BillSplit.Domain.Services;
