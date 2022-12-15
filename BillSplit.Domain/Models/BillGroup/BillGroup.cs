@@ -3,7 +3,7 @@
 namespace BillSplit.Domain.Models.BillGroup;
 
 public sealed record BillGroup(
-    long Id, 
+    long Id,
     string Name,
     UserInfo CreatedBy,
     DateTime CreatedDate,

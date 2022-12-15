@@ -7,12 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Domain", "BillSpl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Infrastructure", "BillSplit.Infrastructure\BillSplit.Infrastructure.csproj", "{62F5AA52-32AF-4B43-9F09-716A0D1CA288}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{BCCA257F-45CA-4B2C-8813-23B3664C54F6}"
-	ProjectSection(SolutionItems) = preProject
-		Directory.Build.props = Directory.Build.props
-		NuGet.Config = NuGet.Config
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{57B67788-5B74-4CC9-A101-324E03AA4F3D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Api.Tests", "BillSplit.Api.Tests\BillSplit.Api.Tests.csproj", "{E956D5E9-31A5-4FB5-9329-C3F78D20B6FE}"
@@ -22,6 +16,13 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Infrastructure.Tests", "BillSplit.Infrastructure.Tests\BillSplit.Infrastructure.Tests.csproj", "{74359DB0-AB7A-4575-93C7-6EAC4CDED792}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Api", "BillSplit.Api\BillSplit.Api.csproj", "{5B209C2E-35CE-4F73-9049-2A5BD677F5F5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C0474BF0-3134-42E8-826A-BD375C30ED5C}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+		NuGet.Config = NuGet.Config
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,10 +1,10 @@
 ﻿namespace BillSplit.Infrastructure.Entities;
 
-internal sealed record Bill(
-    long Id, 
-    long BillGroupId, 
-    long Amount, 
+internal sealed record BillEntity(
+    long Id,
+    long BillGroupId,
+    long Amount,
     DateTime CreatedDate,
     DateTime ModifiedDate,
-    DateTime DeletedDate) 
+    DateTime DeletedDate)
     : BaseEntity(CreatedDate, ModifiedDate, DeletedDate);

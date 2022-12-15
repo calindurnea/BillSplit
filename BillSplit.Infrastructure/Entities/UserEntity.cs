@@ -6,8 +6,8 @@ internal sealed record UserEntity(
     string Name,
     long PhoneNumber,
     string Password,
-    bool IsSuperUser, 
+    bool IsSuperUser,
     DateTime CreatedDate,
     DateTime ModifiedDate,
-    DateTime DeletedDate) 
+    DateTime DeletedDate)
     : BaseEntity(CreatedDate, ModifiedDate, DeletedDate);

@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace BillSplit.Api.Configuration;
 
-public static class StartupExtensions
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
