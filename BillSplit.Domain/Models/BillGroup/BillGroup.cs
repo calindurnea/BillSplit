@@ -7,5 +7,5 @@ public sealed record BillGroup(
     string Name,
     UserInfo CreatedBy,
     DateTime CreatedDate,
-    DateTime ModifiedDate,
+    DateTime UpdatedDate,
     DateTime DeletedDate);

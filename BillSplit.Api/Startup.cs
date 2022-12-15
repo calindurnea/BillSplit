@@ -1,6 +1,9 @@
 using BillSplit.Api.Configuration;
+using BillSplit.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace BillSplit.Api;
 
@@ -21,6 +24,7 @@ public class Startup
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 
+        services.AddInfrastructure(Configuration);
         services.AddServices();
         services.AddValidators();
 

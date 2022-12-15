@@ -16,6 +16,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Infrastructure.Tests", "BillSplit.Infrastructure.Tests\BillSplit.Infrastructure.Tests.csproj", "{74359DB0-AB7A-4575-93C7-6EAC4CDED792}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Api", "BillSplit.Api\BillSplit.Api.csproj", "{5B209C2E-35CE-4F73-9049-2A5BD677F5F5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{62F5AA52-32AF-4B43-9F09-716A0D1CA288} = {62F5AA52-32AF-4B43-9F09-716A0D1CA288}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C0474BF0-3134-42E8-826A-BD375C30ED5C}"
 	ProjectSection(SolutionItems) = preProject

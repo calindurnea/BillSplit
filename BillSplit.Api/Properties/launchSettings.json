@@ -10,7 +10,7 @@
     "BillSplit": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "https://localhost:44390/swagger",
+      "launchUrl": "https://localhost:5001/swagger/index.html",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

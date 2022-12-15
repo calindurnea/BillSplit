@@ -1,6 +1,9 @@
 ﻿namespace BillSplit.Infrastructure.Entities;
 
 internal record BaseEntity(
+    long CreatedBy,
+    long UpdatedBy,
+    long DeletedBy,
     DateTime CreatedDate,
-    DateTime ModifiedDate,
+    DateTime UpdatedDate,
     DateTime DeletedDate);
