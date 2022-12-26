@@ -7,8 +7,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="FluentValidation.AspNetCore" Version="11.2.2" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.1" />
     <PackageReference Include="Microsoft.NET.Build.Containers" Version="0.2.7" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
@@ -20,7 +18,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BillSplit.Domain\BillSplit.Domain.csproj" />
-    <ProjectReference Include="..\BillSplit.Infrastructure\BillSplit.Infrastructure.csproj" />
+    <ProjectReference Include="..\BillSplit.Services\BillSplit.Services.csproj" />
+    <ProjectReference Include="..\BillSplit.Infrastructure\BillSplit.Persistance.csproj" />
+    <ProjectReference Include="..\BillSplit.Services.Abstractions\BillSplit.Services.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

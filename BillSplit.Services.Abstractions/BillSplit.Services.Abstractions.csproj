@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\BillSplit.Contracts\BillSplit.Contracts.csproj" />
+  </ItemGroup>
+</Project>

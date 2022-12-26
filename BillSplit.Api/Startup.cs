@@ -1,9 +1,8 @@
-using BillSplit.Api.Configuration;
-using BillSplit.Infrastructure;
+using BillSplit.Domain;
+using BillSplit.Persistance;
+using BillSplit.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace BillSplit.Api;
 
@@ -19,25 +18,26 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddControllersWithViews();
+        services.AddControllers();
 
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 
         services.AddInfrastructure(Configuration);
         services.AddServices();
+        services.AddRespositories();
         services.AddValidators();
 
         services.AddOutputCache();
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
-        services.AddAuthorization(options =>
-        {
-            options.FallbackPolicy = new AuthorizationPolicyBuilder()
-            .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-            .RequireAuthenticatedUser()
-            .Build();
-        });
+        //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
+        //services.AddAuthorization(options =>
+        //{
+        //    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        //    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+        //    .RequireAuthenticatedUser()
+        //    .Build();
+        //});
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -66,7 +66,7 @@ public class Startup
         app.UseOutputCache();
         app.UseRouting();
 
-        app.UseAuthentication();
-        app.UseAuthorization();
+        //app.UseAuthentication();
+        //app.UseAuthorization();
     }
 }
