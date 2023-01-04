@@ -1,5 +1,6 @@
 ﻿using BillSplit.Contracts.User;
 using BillSplit.Services.Abstractions.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -22,47 +23,49 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken cancellationToken = default)
     {
-        // check login?
         var users = await _userService.Get(cancellationToken);
         return Ok(users);
     }
 
     [HttpGet("{id:long}", Name = nameof(Get))]
-    public async Task<UserDto> Get([FromRoute, BindRequired] long id)
+    public async Task<UserDto> Get([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
-        // check login?
-        return await _userService.Get(id);
+        return await _userService.Get(id, cancellationToken);
     }
 
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     [AllowAnonymous]
-    public async Task<IActionResult> Create([FromBody, BindRequired] CreateUserDto createUser)
+    public async Task<IActionResult> Create([FromBody, BindRequired] CreateUserDto createUser, CancellationToken cancellationToken = default)
     {
-        // check login?
-        // validate input
-        var id = await _userService.Create(createUser);
-
+        var id = await _userService.Create(createUser, cancellationToken);
         return CreatedAtAction(nameof(Get), new { id });
     }
 
-    //[AllowAnonymous]
-    //[HttpPost("login")]
-    //public async Task Login([BindRequired] LoginRequest request)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    [HttpPut("set-password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [AllowAnonymous]
+    public async Task<IActionResult> SetPassword([FromBody, BindRequired] SetPasswordDto setPassword, CancellationToken cancellationToken = default)
+    {
+        await _userService.SetPassword(setPassword, cancellationToken);
+        return NoContent();
+    }
 
-    //[HttpPost("logout")]
-    //public async Task Logout()
-    //{
-    //    throw new NotImplementedException();
-    //}
+    [AllowAnonymous]
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([BindRequired] LoginRequestDto loginRequest, CancellationToken cancellationToken = default)
+    {
+        var response = await _userService.Login(loginRequest, cancellationToken);
+        Response.Cookies.Append(JwtBearerDefaults.AuthenticationScheme, response.Token);
 
-    //[HttpPut]
-    //public async Task Update()
-    //{
-    //    throw new NotImplementedException();
-    //}
+        return Ok(response);
+    }
+
+    [HttpPost("logout")]
+    public async Task Logout()
+    {
+        throw new NotImplementedException();
+    }
 }
-
-public sealed record LoginRequest(string username, string password);

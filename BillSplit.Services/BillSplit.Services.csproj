@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.1" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\BillSplit.Contracts\BillSplit.Contracts.csproj" />
     <ProjectReference Include="..\BillSplit.Domain\BillSplit.Domain.csproj" />
     <ProjectReference Include="..\BillSplit.Infrastructure\BillSplit.Persistance.csproj" />

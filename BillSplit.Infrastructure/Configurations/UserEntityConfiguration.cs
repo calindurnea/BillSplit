@@ -36,13 +36,12 @@ internal class UserEntityConfiguration : IEntityTypeConfiguration<UserEntity>
         builder.Property(b => b.UpdatedDate)
             .ValueGeneratedOnUpdate()
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
-            .IsRequired();
+            .IsRequired(false);
 
         builder.Property(b => b.DeletedBy)
             .HasColumnType("bigint")
             .IsRequired(false);
         builder.Property(b => b.DeletedDate)
-            .ValueGeneratedOnUpdateSometimes()
             .IsRequired(false);
     }
 }

@@ -1,8 +1,12 @@
+using BillSplit.Api.Extensions;
 using BillSplit.Domain;
 using BillSplit.Persistance;
 using BillSplit.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 
 namespace BillSplit.Api;
 
@@ -21,23 +25,24 @@ public class Startup
         services.AddControllers();
 
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+        services.ConfigureSwagger();
 
         services.AddInfrastructure(Configuration);
-        services.AddServices();
+        services.AddServices(Configuration);
         services.AddRespositories();
         services.AddValidators();
 
         services.AddOutputCache();
+        
+        services.ConfigureAuthentication(Configuration);
 
-        //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
-        //services.AddAuthorization(options =>
-        //{
-        //    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        //    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-        //    .RequireAuthenticatedUser()
-        //    .Build();
-        //});
+        services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                .RequireAuthenticatedUser()
+                .Build();
+        });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -66,7 +71,12 @@ public class Startup
         app.UseOutputCache();
         app.UseRouting();
 
-        //app.UseAuthentication();
-        //app.UseAuthorization();
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.UseEndpoints(o =>
+        {
+            o.MapControllers();
+        });
     }
 }
