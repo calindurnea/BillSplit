@@ -26,14 +26,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
 		NuGet.Config = NuGet.Config
-		TextFile1.txt = TextFile1.txt
+		forLocalUse.txt = forLocalUse.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillSplit.Contracts", "BillSplit.Contracts\BillSplit.Contracts.csproj", "{0846822A-75CF-42C3-BB88-0753EFD63880}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Contracts", "BillSplit.Contracts\BillSplit.Contracts.csproj", "{0846822A-75CF-42C3-BB88-0753EFD63880}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillSplit.Services", "BillSplit.Services\BillSplit.Services.csproj", "{D0C46D44-73A5-44DC-9E72-14DFFBD34A88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Services", "BillSplit.Services\BillSplit.Services.csproj", "{D0C46D44-73A5-44DC-9E72-14DFFBD34A88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillSplit.Services.Abstractions", "BillSplit.Services.Abstractions\BillSplit.Services.Abstractions.csproj", "{8DB14DE6-3449-4D60-B795-C9D0CCEDD51C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Services.Abstractions", "BillSplit.Services.Abstractions\BillSplit.Services.Abstractions.csproj", "{8DB14DE6-3449-4D60-B795-C9D0CCEDD51C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{B284D715-E9B6-4A84-A2ED-3BB8BF209486}"
 EndProject

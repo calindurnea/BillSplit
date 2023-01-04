@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /.sonarqube/conf
 /BillSplit.Api/.sonarqube/conf
+/forLocalUse.txt

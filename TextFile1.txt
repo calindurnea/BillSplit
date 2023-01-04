@@ -1,2 +1,0 @@
-dotnet ef migrations add InitialMigration --startup-project ../BillSplit.Api
-dotnet ef database update --startup-project ../BillSplit.Api
