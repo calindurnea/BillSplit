@@ -1,12 +1,12 @@
 ﻿using BillSplit.Contracts.User;
-using BillSplit.Domain.Entities;
 using BillSplit.Domain.Validators;
 using BillSplit.Domain.Exceptions;
-using BillSplit.Persistance.Repositories.Abstractions;
+using BillSplit.Persistence.Repositories.Abstractions;
 using BillSplit.Services.Abstractions.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Authentication;
+using BillSplit.Domain.Models;
 
 namespace BillSplit.Services.Services;
 
@@ -31,9 +31,9 @@ internal sealed class UserService : IUserService
         }
 
         var validator = new CreateUserDtoValidator();
-        validator.ValidateAndThrow(request);
+        await validator.ValidateAndThrowAsync(request, cancellationToken);
 
-        var result = await _userRepository.Create(new UserEntity(0, request.Email, request.Name, request.PhoneNumber, string.Empty, DateTime.UtcNow));
+        var result = await _userRepository.Create(new User(request.Email, request.Name, request.PhoneNumber), cancellationToken);
 
         return result.Id;
     }
@@ -44,7 +44,7 @@ internal sealed class UserService : IUserService
 
         if (user is null)
         {
-            throw new NotFoundException(nameof(UserEntity), request.UserId);
+            throw new NotFoundException(nameof(User), request.UserId);
         }
 
         if (!string.IsNullOrWhiteSpace(user.Password))
@@ -61,10 +61,10 @@ internal sealed class UserService : IUserService
 
         if (user is null)
         {
-            throw new NotFoundException(nameof(UserEntity), request.UserId);
+            throw new NotFoundException(nameof(User), request.UserId);
         }
 
-        var passwordHasher = new PasswordHasher<UserEntity>();
+        var passwordHasher = new PasswordHasher<User>();
         var hash = passwordHasher.HashPassword(user, request.Password);
 
         var passwordCheck = passwordHasher.VerifyHashedPassword(user, hash, request.PasswordCheck);
@@ -93,7 +93,12 @@ internal sealed class UserService : IUserService
             throw new AuthenticationException("Wrong username or password");
         }
 
-        var passwordHasher = new PasswordHasher<UserEntity>();
+        if (user.Password is null)
+        {
+            throw new PasswordCheckException("No password was set for the current user");
+        }
+
+        var passwordHasher = new PasswordHasher<User>();
         var passwordCheck = passwordHasher.VerifyHashedPassword(user, user.Password, loginRequest.Password);
 
         if (passwordCheck == PasswordVerificationResult.Failed)
@@ -111,12 +116,13 @@ internal sealed class UserService : IUserService
         var users = await _userRepository.Get(cancellationToken);
         return users.Select(MapToDto);
     }
+
     public Task<UserDto> Get(long id, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
 
-    private UserDto MapToDto(UserEntity entity)
+    private static UserDto MapToDto(User entity)
     {
         return new UserDto(entity.Id, entity.Email, entity.Name, entity.PhoneNumber);
     }

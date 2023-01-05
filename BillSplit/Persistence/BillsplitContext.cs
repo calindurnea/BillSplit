@@ -1,15 +1,17 @@
-﻿using BillSplit.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+using BillSplit.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BillSplit.Persistence;
 
-public partial class ApplicationDbContext : DbContext, IApplicationDbContext
+public partial class BillsplitContext : DbContext
 {
-    public ApplicationDbContext()
+    public BillsplitContext()
     {
     }
 
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    public BillsplitContext(DbContextOptions<BillsplitContext> options)
         : base(options)
     {
     }
@@ -21,6 +23,9 @@ public partial class ApplicationDbContext : DbContext, IApplicationDbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserBillGroup> UserBillGroups { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseNpgsql("Name=ConnectionStrings:ApplicationContext");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -84,7 +89,6 @@ public partial class ApplicationDbContext : DbContext, IApplicationDbContext
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.InverseCreatedByNavigation)
                 .HasForeignKey(d => d.CreatedBy)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("User_Created_By_User_Id_fk");
 
             entity.HasOne(d => d.DeletedByNavigation).WithMany(p => p.InverseDeletedByNavigation)

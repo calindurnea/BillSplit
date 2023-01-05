@@ -1,8 +1,8 @@
-﻿using BillSplit.Domain.Entities;
-using BillSplit.Persistance.Repositories.Abstractions;
+﻿using BillSplit.Persistence.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using User = BillSplit.Domain.Models.User;
 
-namespace BillSplit.Persistance.Repositories;
+namespace BillSplit.Persistence.Repositories;
 
 internal sealed class UserRepository : IUserRepository
 {
@@ -13,7 +13,7 @@ internal sealed class UserRepository : IUserRepository
         _applicationContext = applicationContext ?? throw new ArgumentNullException(nameof(applicationContext));
     }
 
-    public async Task<UserEntity> Create(UserEntity user, CancellationToken cancellationToken = default)
+    public async Task<User> Create(User user, CancellationToken cancellationToken = default)
     {
         var result = await _applicationContext.Users.AddAsync(user, cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
@@ -21,24 +21,24 @@ internal sealed class UserRepository : IUserRepository
         return result.Entity;
     }
 
-    public async Task<IEnumerable<UserEntity>> Get(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<User>> Get(CancellationToken cancellationToken = default)
     {
         return await _applicationContext.Users.ToListAsync(cancellationToken);
     }
 
-    public async Task<UserEntity?> Get(string email, CancellationToken cancellationToken = default)
+    public async Task<User?> Get(string email, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.Users
             .FirstOrDefaultAsync(x => string.Equals(x.Email, email), cancellationToken);
     }
 
-    public async Task<UserEntity?> Get(long id, CancellationToken cancellationToken = default)
+    public async Task<User?> Get(long id, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.Users
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-    public async Task Update(UserEntity user, CancellationToken cancellationToken = default)
+    public async Task Update(User user, CancellationToken cancellationToken = default)
     {
         _applicationContext.Users.Update(user);
         await _applicationContext.SaveChangesAsync(cancellationToken);

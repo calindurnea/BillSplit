@@ -1,11 +1,11 @@
-﻿using BillSplit.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using User = BillSplit.Domain.Models.User;
 
-namespace BillSplit.Persistance;
+namespace BillSplit.Persistence;
 
 public interface IApplicationDbContext
 {
-    DbSet<UserEntity> Users { get; }
+    DbSet<User> Users { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
 }

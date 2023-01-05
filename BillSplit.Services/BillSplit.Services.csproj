@@ -5,7 +5,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BillSplit.Contracts\BillSplit.Contracts.csproj" />
     <ProjectReference Include="..\BillSplit.Domain\BillSplit.Domain.csproj" />
-    <ProjectReference Include="..\BillSplit.Infrastructure\BillSplit.Persistance.csproj" />
+    <ProjectReference Include="..\BillSplit.Infrastructure\BillSplit.Persistence.csproj" />
     <ProjectReference Include="..\BillSplit.Services.Abstractions\BillSplit.Services.Abstractions.csproj" />
   </ItemGroup>
 </Project>

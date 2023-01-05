@@ -1,6 +1,6 @@
 using BillSplit.Api.Extensions;
 using BillSplit.Domain;
-using BillSplit.Persistance;
+using BillSplit.Persistence;
 using BillSplit.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -29,7 +29,7 @@ public class Startup
 
         services.AddInfrastructure(Configuration);
         services.AddServices(Configuration);
-        services.AddRespositories();
+        services.AddRepositories();
         services.AddValidators();
 
         services.AddOutputCache();

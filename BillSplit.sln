@@ -5,7 +5,7 @@ VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Domain", "BillSplit.Domain\BillSplit.Domain.csproj", "{83D24DB3-9CD4-4FB7-A6E4-F7C5A50E18AF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Persistance", "BillSplit.Infrastructure\BillSplit.Persistance.csproj", "{62F5AA52-32AF-4B43-9F09-716A0D1CA288}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Persistence", "BillSplit.Infrastructure\BillSplit.Persistence.csproj", "{62F5AA52-32AF-4B43-9F09-716A0D1CA288}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{57B67788-5B74-4CC9-A101-324E03AA4F3D}"
 EndProject
@@ -26,7 +26,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
 		NuGet.Config = NuGet.Config
-		forLocalUse.txt = forLocalUse.txt
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Contracts", "BillSplit.Contracts\BillSplit.Contracts.csproj", "{0846822A-75CF-42C3-BB88-0753EFD63880}"

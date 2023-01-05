@@ -1,12 +1,12 @@
-﻿using BillSplit.Domain.Entities;
+﻿using User = BillSplit.Domain.Models.User;
 
-namespace BillSplit.Persistance.Repositories.Abstractions;
+namespace BillSplit.Persistence.Repositories.Abstractions;
 
 public interface IUserRepository
 {
-    Task<UserEntity> Create(UserEntity userInfo, CancellationToken cancellationToken = default);
-    Task<IEnumerable<UserEntity>> Get(CancellationToken cancellationToken = default);
-    Task<UserEntity?> Get(string email, CancellationToken cancellationToken = default);
-    Task<UserEntity?> Get(long id, CancellationToken cancellationToken = default);
-    Task Update(UserEntity userInfo, CancellationToken cancellationToken = default);
+    Task<User> Create(User userInfo, CancellationToken cancellationToken = default);
+    Task<IEnumerable<User>> Get(CancellationToken cancellationToken = default);
+    Task<User?> Get(string email, CancellationToken cancellationToken = default);
+    Task<User?> Get(long id, CancellationToken cancellationToken = default);
+    Task Update(User userInfo, CancellationToken cancellationToken = default);
 }
