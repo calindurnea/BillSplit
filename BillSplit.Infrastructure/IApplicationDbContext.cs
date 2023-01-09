@@ -8,6 +8,7 @@ public interface IApplicationDbContext
 {
     DbSet<User> Users { get; }
     DbSet<Bill> Bills { get; }
+    DbSet<BillGroup?> BillGroups { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
 }

@@ -22,6 +22,8 @@ public partial class Bill
 
     public long BillGroupId { get; set; }
 
+    public bool? IsDeleted { get; set; }
+
     public virtual BillGroup BillGroup { get; set; } = null!;
 
     public virtual ICollection<BillSplit> BillSplits { get; } = new List<BillSplit>();

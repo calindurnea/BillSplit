@@ -16,7 +16,7 @@ public partial class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public virtual DbSet<Bill> Bills { get; set; }
 
-    public virtual DbSet<BillGroup> BillGroups { get; set; }
+    public virtual DbSet<BillGroup?> BillGroups { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 

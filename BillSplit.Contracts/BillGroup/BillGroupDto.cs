@@ -1,4 +1,3 @@
-﻿namespace BillSplit.Contracts.BillGroup
-{
-    public record BillGroupDto(long Id, string Name, decimal TotalAmount, decimal CurrentUserAmount);
-}
+namespace BillSplit.Contracts.BillGroup;
+
+public sealed record BillGroupDto(long Id, string Name);

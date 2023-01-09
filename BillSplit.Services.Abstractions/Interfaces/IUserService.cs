@@ -9,5 +9,5 @@ public interface IUserService
     Task<long> Create(CreateUserDto request, CancellationToken cancellationToken = default);
     Task SetPassword(SetPasswordDto request, CancellationToken cancellationToken = default);
     Task UpdatePassword(SetPasswordDto request, CancellationToken cancellationToken = default);
-    Task<LoginResponseDto> Login(LoginRequestDto loginRequest, CancellationToken cancellationToken);
+    Task<LoginResponseDto> Login(LoginRequestDto loginRequest, CancellationToken cancellationToken = default);
 }

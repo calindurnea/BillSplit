@@ -1,6 +1,5 @@
 ﻿using BillSplit.Contracts.User;
 using BillSplit.Services.Abstractions.Interfaces;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -57,8 +56,6 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> Login([BindRequired] LoginRequestDto loginRequest, CancellationToken cancellationToken = default)
     {
         var response = await _userService.Login(loginRequest, cancellationToken);
-        Response.Cookies.Append(JwtBearerDefaults.AuthenticationScheme, response.Token);
-
         return Ok(response);
     }
 

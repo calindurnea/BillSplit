@@ -13,7 +13,7 @@ public class NotFoundException : Exception
     {
     }
 
-    public NotFoundException(string name, long userId) : base($"Entity \"{name}\" with id \"{userId}\" was not found")
+    public NotFoundException(string name, long id) : base($"Entity \"{name}\" with id \"{id}\" was not found")
     {
     }
 

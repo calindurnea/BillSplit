@@ -18,6 +18,8 @@ public partial class BillGroup
 
     public long? DeletedBy { get; set; }
 
+    public bool? IsDeleted { get; set; }
+
     public virtual ICollection<Bill> Bills { get; } = new List<Bill>();
 
     public virtual User CreatedByNavigation { get; set; } = null!;

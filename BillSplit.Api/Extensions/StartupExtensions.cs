@@ -1,8 +1,8 @@
 ﻿using BillSplit.Contracts.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BillSplit.Api.Extensions;
 
@@ -22,23 +22,22 @@ public static class StartupExtensions
             });
 
             options.AddSecurityRequirement(new OpenApiSecurityRequirement()
-              {
+            {
                 {
-                  new OpenApiSecurityScheme
-                  {
-                    Reference = new OpenApiReference
-                      {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                      },
-                      Scheme = "oauth2",
-                      Name = "Bearer",
-                      In = ParameterLocation.Header,
-
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        },
+                        Scheme = "oauth2",
+                        Name = "Bearer",
+                        In = ParameterLocation.Header,
                     },
                     new List<string>()
-                  }
-                });
+                }
+            });
         });
 
         return services;
@@ -64,10 +63,23 @@ public static class StartupExtensions
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateLifetime = true,
-                ValidateIssuerSigningKey = true
+                ValidateIssuerSigningKey = true,
+                RequireAudience = true,
+                RequireExpirationTime = true,
+                LifetimeValidator = LifetimeValidator
             };
         });
 
         return services;
+    }
+
+    private static bool LifetimeValidator(DateTime? notbefore, DateTime? expires, SecurityToken securitytoken, TokenValidationParameters validationparameters)
+    {
+        if (expires != null)
+        {
+            return expires > DateTime.UtcNow;
+        }
+
+        return false;
     }
 }

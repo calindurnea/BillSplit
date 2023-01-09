@@ -11,6 +11,7 @@ public static class StartupExtensions
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IBillGroupService, BillGroupService>();
 
         var jwtSettings = new JwtSettings();
         configuration.Bind("Jwt", jwtSettings);

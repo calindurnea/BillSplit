@@ -29,7 +29,7 @@ public class Startup
         services.AddRepositories();
         services.AddValidators();
 
-        services.AddOutputCache();
+        // services.AddOutputCache();
         
         services.ConfigureAuthentication(Configuration);
 
@@ -65,7 +65,7 @@ public class Startup
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
-        app.UseOutputCache();
+        // app.UseOutputCache();
         app.UseRouting();
 
         app.UseAuthentication();

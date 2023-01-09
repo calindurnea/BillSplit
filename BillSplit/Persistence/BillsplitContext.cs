@@ -36,7 +36,6 @@ public partial class BillsplitContext : DbContext
             entity.ToTable("Bill", "billsplit");
 
             entity.Property(e => e.Amount).HasPrecision(19, 4);
-            entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.UpdatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.HasOne(d => d.BillGroup).WithMany(p => p.Bills)
@@ -65,7 +64,7 @@ public partial class BillsplitContext : DbContext
             entity.ToTable("BillGroup", "billsplit");
 
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-            entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.UpdatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.BillGroupCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
@@ -87,12 +86,27 @@ public partial class BillsplitContext : DbContext
 
             entity.ToTable("BillSplit", "billsplit");
 
+            entity.Property(e => e.UpdatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
             entity.HasOne(d => d.Bill).WithMany(p => p.BillSplits)
                 .HasForeignKey(d => d.BillId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("BillSplit_Bill_Id_fk");
 
-            entity.HasOne(d => d.User).WithMany(p => p.BillSplits)
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.BillSplitCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("User_Created_By_User_Id_fk");
+
+            entity.HasOne(d => d.DeletedByNavigation).WithMany(p => p.BillSplitDeletedByNavigations)
+                .HasForeignKey(d => d.DeletedBy)
+                .HasConstraintName("User_Deleted_By_User__fk");
+
+            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.BillSplitUpdatedByNavigations)
+                .HasForeignKey(d => d.UpdatedBy)
+                .HasConstraintName("User_Updated_By_User__fk");
+
+            entity.HasOne(d => d.User).WithMany(p => p.BillSplitUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("BillSplit_User_Id_fk");
@@ -102,7 +116,6 @@ public partial class BillsplitContext : DbContext
         {
             entity.ToTable("User", "billsplit");
 
-            entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.Email).HasMaxLength(254);
             entity.Property(e => e.UpdatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
@@ -126,7 +139,6 @@ public partial class BillsplitContext : DbContext
             entity.ToTable("UserBillGroup", "billsplit");
 
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-            entity.Property(e => e.CreatedDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             entity.HasOne(d => d.BillGroup).WithMany(p => p.UserBillGroups)
                 .HasForeignKey(d => d.BillGroupId)

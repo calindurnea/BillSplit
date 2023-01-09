@@ -84,7 +84,7 @@ internal sealed class UserService : IUserService
         await _userRepository.Update(user, cancellationToken);
     }
 
-    public async Task<LoginResponseDto> Login(LoginRequestDto loginRequest, CancellationToken cancellationToken)
+    public async Task<LoginResponseDto> Login(LoginRequestDto loginRequest, CancellationToken cancellationToken = default)
     {
         var user = await _userRepository.Get(loginRequest.Email, cancellationToken);
 

@@ -16,6 +16,8 @@ public partial class UserBillGroup
 
     public long? DeletedBy { get; set; }
 
+    public bool? IsDeleted { get; set; }
+
     public virtual BillGroup? BillGroup { get; set; }
 
     public virtual User CreatedByNavigation { get; set; } = null!;
