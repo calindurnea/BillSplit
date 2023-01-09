@@ -20,6 +20,8 @@ public partial class BillsplitContext : DbContext
 
     public virtual DbSet<BillGroup> BillGroups { get; set; }
 
+    public virtual DbSet<BillSplit> BillSplits { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserBillGroup> UserBillGroups { get; set; }
@@ -77,6 +79,23 @@ public partial class BillsplitContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.BillGroupUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("BillGroup_Updated_By_User_Id_fk");
+        });
+
+        modelBuilder.Entity<BillSplit>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("Id");
+
+            entity.ToTable("BillSplit", "billsplit");
+
+            entity.HasOne(d => d.Bill).WithMany(p => p.BillSplits)
+                .HasForeignKey(d => d.BillId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BillSplit_Bill_Id_fk");
+
+            entity.HasOne(d => d.User).WithMany(p => p.BillSplits)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BillSplit_User_Id_fk");
         });
 
         modelBuilder.Entity<User>(entity =>

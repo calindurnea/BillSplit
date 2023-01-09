@@ -1,6 +1,6 @@
-﻿using BillSplit.Persistence.Repositories.Abstractions;
+﻿using BillSplit.Domain.Models;
+using BillSplit.Persistence.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
-using User = BillSplit.Domain.Models.User;
 
 namespace BillSplit.Persistence.Repositories;
 
@@ -23,12 +23,13 @@ internal sealed class UserRepository : IUserRepository
 
     public async Task<IEnumerable<User>> Get(CancellationToken cancellationToken = default)
     {
-        return await _applicationContext.Users.ToListAsync(cancellationToken);
+        return await _applicationContext.Users.AsNoTracking().ToListAsync(cancellationToken);
     }
 
     public async Task<User?> Get(string email, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.Users
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => string.Equals(x.Email, email), cancellationToken);
     }
 

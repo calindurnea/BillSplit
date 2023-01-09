@@ -11,12 +11,10 @@ namespace BillSplit.Api.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly ILogger<UsersController> _logger;
     private readonly IUserService _userService;
 
-    public UsersController(ILogger<UsersController> logger, IUserService userService)
+    public UsersController(IUserService userService)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _userService = userService ?? throw new ArgumentNullException(nameof(userService));
     }
 
@@ -28,9 +26,10 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("{id:long}", Name = nameof(Get))]
-    public async Task<UserDto> Get([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Get([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
-        return await _userService.Get(id, cancellationToken);
+        var user = await _userService.Get(id, cancellationToken);
+        return Ok(user);
     }
 
     [HttpPost]

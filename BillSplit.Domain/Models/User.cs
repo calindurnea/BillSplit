@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BillSplit.Domain.Models;
+﻿namespace BillSplit.Domain.Models;
 
 public partial class User
 {
@@ -38,6 +35,8 @@ public partial class User
     public virtual ICollection<BillGroup> BillGroupDeletedByNavigations { get; } = new List<BillGroup>();
 
     public virtual ICollection<BillGroup> BillGroupUpdatedByNavigations { get; } = new List<BillGroup>();
+
+    public virtual ICollection<BillSplit> BillSplits { get; } = new List<BillSplit>();
 
     public virtual ICollection<Bill> BillUpdatedByNavigations { get; } = new List<Bill>();
 
