@@ -365,3 +365,4 @@ FodyWeavers.xsd
 /BillSplit.Api/.sonarqube/conf
 /forLocalUse.txt
 *.xml
+*.idea
