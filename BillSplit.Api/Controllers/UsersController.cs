@@ -1,4 +1,5 @@
-﻿using BillSplit.Contracts.User;
+﻿using BillSplit.Api.Extensions;
+using BillSplit.Contracts.User;
 using BillSplit.Services.Abstractions.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,51 +18,63 @@ public class UsersController : ControllerBase
         _userService = userService ?? throw new ArgumentNullException(nameof(userService));
     }
 
+    [HttpGet("current")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetCurrentUser(CancellationToken cancellationToken = default)
+    {
+        var user = HttpContext.User.GetCurrentUser();
+
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        var users = await _userService.Get(user.Id, cancellationToken);
+        return Ok(users);
+    }
+
     [HttpGet]
-    public async Task<IActionResult> Get(CancellationToken cancellationToken = default)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken = default)
     {
         var users = await _userService.Get(cancellationToken);
         return Ok(users);
     }
 
-    [HttpGet("{id:long}", Name = nameof(Get))]
-    public async Task<IActionResult> Get([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
+    [HttpGet("{id:long}", Name = nameof(GetUserWithId))]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUserWithId([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
         var user = await _userService.Get(id, cancellationToken);
         return Ok(user);
     }
 
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [HttpPut("{id:long}", Name = nameof(Update))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [AllowAnonymous]
-    public async Task<IActionResult> Create([FromBody, BindRequired] CreateUserDto createUser, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Update([FromRoute, BindRequired] long id, [FromBody, BindRequired] UpsertUserDto upsertUser, CancellationToken cancellationToken = default)
     {
-        var id = await _userService.Create(createUser, cancellationToken);
-        return CreatedAtAction(nameof(Get), new { id });
-    }
+        var user = HttpContext.User.GetCurrentUser();
 
-    [HttpPut("set-password")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [AllowAnonymous]
-    public async Task<IActionResult> SetPassword([FromBody, BindRequired] SetPasswordDto setPassword, CancellationToken cancellationToken = default)
-    {
-        await _userService.SetPassword(setPassword, cancellationToken);
+        if (user is null || user.Id != id)
+        {
+            return Unauthorized();
+        }
+
+        await _userService.Update(id, upsertUser, cancellationToken);
         return NoContent();
     }
 
+    [HttpPost(Name = nameof(Create))]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     [AllowAnonymous]
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([BindRequired] LoginRequestDto loginRequest, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Create([FromBody, BindRequired] UpsertUserDto upsertUser, CancellationToken cancellationToken = default)
     {
-        var response = await _userService.Login(loginRequest, cancellationToken);
-        return Ok(response);
-    }
-
-    [HttpPost("logout")]
-    public async Task Logout()
-    {
-        throw new NotImplementedException();
+        var id = await _userService.Create(upsertUser, cancellationToken);
+        return CreatedAtAction(nameof(GetUserWithId), new { id }, new { id });
     }
 }

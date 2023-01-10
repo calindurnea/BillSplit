@@ -39,9 +39,31 @@ internal sealed class UserRepository : IUserRepository
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
+    public async Task<IEnumerable<User>?> Get(IEnumerable<long> ids, CancellationToken cancellationToken = default)
+    {
+        return await _applicationContext.Users
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task Update(User user, CancellationToken cancellationToken = default)
     {
         _applicationContext.Users.Update(user);
         await _applicationContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<bool> IsEmailInUse(string email, CancellationToken cancellationToken = default)
+    {
+        return await _applicationContext.Users.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Email == email, cancellationToken: cancellationToken)
+            is not null;
+    }
+    
+    public async Task<bool> IsPhoneNumberInUse(long phoneNumber, CancellationToken cancellationToken = default)
+    {
+        return await _applicationContext.Users.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber, cancellationToken: cancellationToken)
+            is not null;
     }
 }

@@ -13,11 +13,11 @@ internal class BillGroupRepository : IBillGroupRepository
         _applicationContext = applicationContext ?? throw new ArgumentNullException(nameof(applicationContext));
     }
 
-    public async Task<IEnumerable<BillGroup>> GetByUserId(long userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<BillGroup>?> GetByUserId(long userId, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.BillGroups
             .AsNoTracking()
-            .Where(billGroup => billGroup.CreatedBy == userId && billGroup.IsDeleted == true)
+            .Where(billGroup => billGroup.CreatedBy == userId && billGroup.IsDeleted == false)
             .Include(billGroup => billGroup.Bills)
             .ToListAsync(cancellationToken);
     }
@@ -25,6 +25,8 @@ internal class BillGroupRepository : IBillGroupRepository
     public async Task<BillGroup?> Get(long id, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.BillGroups
+            .AsNoTracking()
+            .Include(billGroup => billGroup.Bills)
             .Include(billGroup => billGroup.UserBillGroups)
             .FirstOrDefaultAsync(billGroup => billGroup.Id == id, cancellationToken);
     }
@@ -32,7 +34,7 @@ internal class BillGroupRepository : IBillGroupRepository
     public async Task<BillGroup> Create(BillGroup billGroup, CancellationToken cancellationToken = default)
     {
         var result = await _applicationContext.BillGroups.AddAsync(billGroup, cancellationToken);
-        _applicationContext.SaveChangesAsync(cancellationToken);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
 
         return result.Entity;
     }

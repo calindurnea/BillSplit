@@ -1,11 +1,11 @@
-﻿using BillSplit.Contracts.Authorization;
-using BillSplit.Services.Abstractions.Interfaces;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using BillSplit.Contracts.Authorization;
+using BillSplit.Services.Abstractions.Interfaces;
+using Microsoft.IdentityModel.Tokens;
 
-namespace BillSplit.Services.Services;
+namespace BillSplit.Services;
 
 internal class JwtTokenGenerator : IJwtTokenGenerator
 {
@@ -31,7 +31,7 @@ internal class JwtTokenGenerator : IJwtTokenGenerator
             Audience = _jwtSettings.Audience,
             Subject = claims,
             IssuedAt = DateTime.UtcNow,
-            Expires = DateTime.UtcNow.AddMinutes(5),
+            Expires = DateTime.UtcNow.AddMinutes(500),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(jwtSecretKey), SecurityAlgorithms.HmacSha256)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);

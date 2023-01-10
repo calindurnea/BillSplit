@@ -1,51 +1,28 @@
-﻿using BillSplit.Contracts.User;
-using BillSplit.Domain.Validators;
+﻿using System.Security.Authentication;
+using BillSplit.Contracts.User;
 using BillSplit.Domain.Exceptions;
+using BillSplit.Domain.Models;
 using BillSplit.Persistence.Repositories.Abstractions;
 using BillSplit.Services.Abstractions.Interfaces;
-using FluentValidation;
+using BillSplit.Services.Extensions;
 using Microsoft.AspNetCore.Identity;
-using System.Security.Authentication;
-using BillSplit.Domain.Models;
 
-namespace BillSplit.Services.Services;
+namespace BillSplit.Services;
 
-internal sealed class UserService : IUserService
+internal class AuthorizationService : IAuthorizationService
 {
-    private readonly IUserRepository _userRepository;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly IUserRepository _userRepository;
 
-    public UserService(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator)
+    public AuthorizationService(IJwtTokenGenerator jwtTokenGenerator, IUserRepository userRepository)
     {
-        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         _jwtTokenGenerator = jwtTokenGenerator ?? throw new ArgumentNullException(nameof(jwtTokenGenerator));
-    }
-
-    public async Task<long> Create(CreateUserDto request, CancellationToken cancellationToken = default)
-    {
-        var existingUser = await _userRepository.Get(request.Email, cancellationToken);
-
-        if (existingUser is not null)
-        {
-            throw new UnavailableEmailException("Email address already in use");
-        }
-
-        var validator = new CreateUserDtoValidator();
-        await validator.ValidateAndThrowAsync(request, cancellationToken);
-
-        var result = await _userRepository.Create(new User(request.Email, request.Name, request.PhoneNumber), cancellationToken);
-
-        return result.Id;
+        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
     }
 
     public async Task SetPassword(SetPasswordDto request, CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.Get(request.UserId, cancellationToken);
-
-        if (user is null)
-        {
-            throw new NotFoundException(nameof(User), request.UserId);
-        }
+        var user = (await _userRepository.Get(request.UserId, cancellationToken)).ThrowIfNull(request.UserId);
 
         if (!string.IsNullOrWhiteSpace(user.Password))
         {
@@ -57,12 +34,7 @@ internal sealed class UserService : IUserService
 
     public async Task UpdatePassword(SetPasswordDto request, CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.Get(request.UserId, cancellationToken);
-
-        if (user is null)
-        {
-            throw new NotFoundException(nameof(User), request.UserId);
-        }
+        var user = (await _userRepository.Get(request.UserId, cancellationToken)).ThrowIfNull(request.UserId);
 
         var passwordHasher = new PasswordHasher<User>();
         var hash = passwordHasher.HashPassword(user, request.Password);
@@ -109,21 +81,5 @@ internal sealed class UserService : IUserService
         var token = _jwtTokenGenerator.Generate(user.Id);
 
         return new LoginResponseDto(token);
-    }
-
-    public async Task<IEnumerable<UserDto>> Get(CancellationToken cancellationToken = default)
-    {
-        var users = await _userRepository.Get(cancellationToken);
-        return users.Select(MapToDto);
-    }
-
-    public Task<UserDto> Get(long id, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    private static UserDto MapToDto(User entity)
-    {
-        return new UserDto(entity.Id, entity.Email, entity.Name, entity.PhoneNumber);
     }
 }

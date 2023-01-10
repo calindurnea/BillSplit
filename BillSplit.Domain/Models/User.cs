@@ -26,7 +26,15 @@ public partial class User
 
     public DateTime? DeletedDate { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
+
+    public virtual ICollection<BillAllocation> BillAllocationCreatedByNavigations { get; } = new List<BillAllocation>();
+
+    public virtual ICollection<BillAllocation> BillAllocationDeletedByNavigations { get; } = new List<BillAllocation>();
+
+    public virtual ICollection<BillAllocation> BillAllocationUpdatedByNavigations { get; } = new List<BillAllocation>();
+
+    public virtual ICollection<BillAllocation> BillAllocationUsers { get; } = new List<BillAllocation>();
 
     public virtual ICollection<Bill> BillCreatedByNavigations { get; } = new List<Bill>();
 
@@ -37,14 +45,6 @@ public partial class User
     public virtual ICollection<BillGroup> BillGroupDeletedByNavigations { get; } = new List<BillGroup>();
 
     public virtual ICollection<BillGroup> BillGroupUpdatedByNavigations { get; } = new List<BillGroup>();
-
-    public virtual ICollection<BillSplit> BillSplitCreatedByNavigations { get; } = new List<BillSplit>();
-
-    public virtual ICollection<BillSplit> BillSplitDeletedByNavigations { get; } = new List<BillSplit>();
-
-    public virtual ICollection<BillSplit> BillSplitUpdatedByNavigations { get; } = new List<BillSplit>();
-
-    public virtual ICollection<BillSplit> BillSplitUsers { get; } = new List<BillSplit>();
 
     public virtual ICollection<Bill> BillUpdatedByNavigations { get; } = new List<Bill>();
 

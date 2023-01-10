@@ -1,10 +1,9 @@
 ﻿using BillSplit.Contracts.Authorization;
 using BillSplit.Services.Abstractions.Interfaces;
-using BillSplit.Services.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BillSplit.Services;
+namespace BillSplit.Services.Extensions;
 
 public static class StartupExtensions
 {
@@ -12,6 +11,7 @@ public static class StartupExtensions
     {
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IBillGroupService, BillGroupService>();
+        services.AddScoped<IAuthorizationService, AuthorizationService>();
 
         var jwtSettings = new JwtSettings();
         configuration.Bind("Jwt", jwtSettings);

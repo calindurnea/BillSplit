@@ -1,7 +1,7 @@
 using BillSplit.Api.Extensions;
 using BillSplit.Domain;
 using BillSplit.Persistence;
-using BillSplit.Services;
+using BillSplit.Services.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 

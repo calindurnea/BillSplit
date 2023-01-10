@@ -1,11 +1,10 @@
-﻿namespace BillSplit.Domain.Models
+﻿namespace BillSplit.Domain.Models;
+
+public partial class BillGroup
 {
-    public partial class BillGroup
+    public BillGroup(string name, long createdBy)
     {
-        public BillGroup(string name, long createdBy)
-        {
-            Name = name;
-            CreatedBy = createdBy;
-        }
+        Name = name;
+        CreatedBy = createdBy;
     }
 }

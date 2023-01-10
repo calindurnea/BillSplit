@@ -18,7 +18,7 @@ public partial class BillGroup
 
     public long? DeletedBy { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public bool IsDeleted { get; set; }
 
     public virtual ICollection<Bill> Bills { get; } = new List<Bill>();
 
