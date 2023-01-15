@@ -25,11 +25,6 @@ public class UsersController : ControllerBase
     {
         var user = HttpContext.User.GetCurrentUser();
 
-        if (user is null)
-        {
-            return Unauthorized();
-        }
-
         var users = await _userService.Get(user.Id, cancellationToken);
         return Ok(users);
     }
@@ -58,9 +53,9 @@ public class UsersController : ControllerBase
     {
         var user = HttpContext.User.GetCurrentUser();
 
-        if (user is null || user.Id != id)
+        if (user.Id != id)
         {
-            return Unauthorized();
+            return Forbid("You can only update your own data");
         }
 
         await _userService.Update(id, upsertUser, cancellationToken);

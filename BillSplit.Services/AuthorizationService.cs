@@ -1,4 +1,5 @@
 ﻿using System.Security.Authentication;
+using BillSplit.Contracts.Authorization;
 using BillSplit.Contracts.User;
 using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
@@ -20,8 +21,13 @@ internal class AuthorizationService : IAuthorizationService
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
     }
 
-    public async Task SetPassword(SetPasswordDto request, CancellationToken cancellationToken = default)
+    public async Task SetInitialPassword(SetInitialPasswordDto request, CancellationToken cancellationToken = default)
     {
+        if (string.Equals(request.Password, request.PasswordCheck))
+        {
+            throw new PasswordCheckException("The password did not match with the repeated password");
+        }
+        
         var user = (await _userRepository.Get(request.UserId, cancellationToken)).ThrowIfNull(request.UserId);
 
         if (!string.IsNullOrWhiteSpace(user.Password))
@@ -29,22 +35,34 @@ internal class AuthorizationService : IAuthorizationService
             throw new PasswordCheckException("User has a password already set");
         }
 
-        await UpdatePassword(request, cancellationToken);
+        await UpdatePassword(user.Id, request.Password, cancellationToken);
     }
 
-    public async Task UpdatePassword(SetPasswordDto request, CancellationToken cancellationToken = default)
+    public async Task UpdatePassword(UserClaims user, UpdatePasswordDto request, CancellationToken cancellationToken = default)
     {
-        var user = (await _userRepository.Get(request.UserId, cancellationToken)).ThrowIfNull(request.UserId);
-
-        var passwordHasher = new PasswordHasher<User>();
-        var hash = passwordHasher.HashPassword(user, request.Password);
-
-        var passwordCheck = passwordHasher.VerifyHashedPassword(user, hash, request.PasswordCheck);
+        if (!string.Equals(request.NewPassword, request.NewPasswordCheck))
+        {
+            throw new PasswordCheckException("The new password did not match with the repeated new password");
+        }
+        
+        var existingUser = (await _userRepository.Get(user.Id, cancellationToken)).ThrowIfNull(user.Id);
+        
+        var passwordCheck = VerifyPassword(existingUser, existingUser.Password, request.Password);
 
         if (passwordCheck == PasswordVerificationResult.Failed)
         {
-            throw new PasswordCheckException("The password did not match with the repeated password");
+            throw new AuthenticationException("Wrong username or password");
         }
+
+        await UpdatePassword(existingUser.Id, request.NewPassword, cancellationToken);
+    }
+    
+    private async Task UpdatePassword(long userId, string password, CancellationToken cancellationToken = default)
+    {
+        var user = (await _userRepository.Get(userId, cancellationToken)).ThrowIfNull(userId);
+
+        var passwordHasher = new PasswordHasher<User>();
+        var hash = passwordHasher.HashPassword(user, password);
 
         // should I? or can it be maliciously used to find passwords?
         if (string.Equals(user.Password, hash))
@@ -70,16 +88,21 @@ internal class AuthorizationService : IAuthorizationService
             throw new PasswordCheckException("No password was set for the current user");
         }
 
-        var passwordHasher = new PasswordHasher<User>();
-        var passwordCheck = passwordHasher.VerifyHashedPassword(user, user.Password, loginRequest.Password);
+        var passwordCheck = VerifyPassword(user, user.Password, loginRequest.Password);
 
         if (passwordCheck == PasswordVerificationResult.Failed)
         {
             throw new AuthenticationException("Wrong username or password");
         }
-
+        
         var token = _jwtTokenGenerator.Generate(user.Id);
 
         return new LoginResponseDto(token);
+    }
+
+    private static PasswordVerificationResult VerifyPassword(User user, string passwordHash, string providedPassword)
+    {
+        var passwordHasher = new PasswordHasher<User>();
+        return passwordHasher.VerifyHashedPassword(user, passwordHash, providedPassword);
     }
 }

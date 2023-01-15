@@ -1,9 +1,10 @@
-﻿using BillSplit.Contracts.User;
+﻿using BillSplit.Contracts.Authorization;
+using BillSplit.Contracts.User;
 using FluentValidation;
 
 namespace BillSplit.Domain.Validators.User;
 
-public class SetPasswordDtoValidator : AbstractValidator<SetPasswordDto>
+public class SetPasswordDtoValidator : AbstractValidator<SetInitialPasswordDto>
 {
     public SetPasswordDtoValidator()
     {

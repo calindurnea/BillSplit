@@ -1,4 +1,5 @@
-﻿using BillSplit.Contracts.User;
+﻿using BillSplit.Api.Extensions;
+using BillSplit.Contracts.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -18,16 +19,26 @@ public class AuthorizationController : ControllerBase
     }
     
     [AllowAnonymous]
-    [HttpPut("set-password", Name = nameof(SetPassword))]
+    [HttpPost("password")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> SetPassword([FromBody, BindRequired] SetPasswordDto setPassword, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> SetPassword([FromBody, BindRequired] SetInitialPasswordDto setInitialPassword, CancellationToken cancellationToken = default)
     {
-        await _authorizationService.SetPassword(setPassword, cancellationToken);
+        await _authorizationService.SetInitialPassword(setInitialPassword, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPut("password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> UpdatePassword([FromBody, BindRequired] UpdatePasswordDto updatePassword, CancellationToken cancellationToken = default)
+    {
+        var user = HttpContext.User.GetCurrentUser();
+        await _authorizationService.UpdatePassword(user, updatePassword, cancellationToken);
         return NoContent();
     }
 
     [AllowAnonymous]
     [HttpPost("login", Name = nameof(Login))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponseDto))]
     public async Task<IActionResult> Login([BindRequired] LoginRequestDto loginRequest, CancellationToken cancellationToken = default)
     {
         var response = await _authorizationService.Login(loginRequest, cancellationToken);

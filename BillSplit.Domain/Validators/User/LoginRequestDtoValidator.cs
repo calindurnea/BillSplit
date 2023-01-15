@@ -1,4 +1,5 @@
-﻿using BillSplit.Contracts.User;
+﻿using BillSplit.Contracts.Authorization;
+using BillSplit.Contracts.User;
 using FluentValidation;
 
 namespace BillSplit.Domain.Validators.User;

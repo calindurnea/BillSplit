@@ -6,7 +6,7 @@ namespace BillSplit.Api.Extensions;
 
 internal static class UserExtensions
 {
-    internal static UserClaims? GetCurrentUser(this IPrincipal claimsPrincipal)
+    internal static UserClaims GetCurrentUser(this IPrincipal claimsPrincipal)
     {
         if (claimsPrincipal.Identity is not ClaimsIdentity identity)
         {
@@ -14,8 +14,8 @@ internal static class UserExtensions
         }
 
         var userClaims = identity.Claims;
-        var id = userClaims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+        var id = userClaims.First(x => x.Type == ClaimTypes.Name).Value;
 
-        return !long.TryParse(id, out var parsedId) ? null : new UserClaims(parsedId);
+        return new UserClaims(long.Parse(id));
     }
 }
