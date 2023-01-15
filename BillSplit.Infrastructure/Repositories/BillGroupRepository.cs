@@ -19,6 +19,7 @@ internal class BillGroupRepository : IBillGroupRepository
             .AsNoTracking()
             .Where(billGroup => billGroup.CreatedBy == userId && billGroup.IsDeleted == false)
             .Include(billGroup => billGroup.Bills)
+            .ThenInclude(bill=> bill.BillAllocations)
             .ToListAsync(cancellationToken);
     }
 
@@ -27,6 +28,7 @@ internal class BillGroupRepository : IBillGroupRepository
         return await _applicationContext.BillGroups
             .AsNoTracking()
             .Include(billGroup => billGroup.Bills)
+            .ThenInclude(billGroup => billGroup.BillAllocations)
             .Include(billGroup => billGroup.UserBillGroups)
             .FirstOrDefaultAsync(billGroup => billGroup.Id == id, cancellationToken);
     }

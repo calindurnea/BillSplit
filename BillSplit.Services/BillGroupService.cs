@@ -1,4 +1,6 @@
-﻿using BillSplit.Contracts.BillGroup;
+﻿using BillSplit.Contracts.Bill;
+using BillSplit.Contracts.BillAllocation;
+using BillSplit.Contracts.BillGroup;
 using BillSplit.Contracts.User;
 using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
@@ -28,36 +30,57 @@ public class BillGroupService : IBillGroupService
             throw new UnauthorizedAccessException();
         }
 
-        return new BillGroupDto(billGroup.Id, billGroup.Name, billGroup.Bills.Sum(bill => bill.Amount));
+        return new BillGroupDto(
+            billGroup.Id,
+            billGroup.Name,
+            billGroup.Bills.Select(bill => new BillDto(
+                bill.Id,
+                bill.PaidBy,
+                bill.Amount,
+                bill.Comment,
+                bill.CreatedByNavigation.Name,
+                bill.CreatedDate,
+                bill.BillAllocations.Select(allocation => new BillAllocationDto(
+                    allocation.Id,
+                    allocation.UserId,
+                    allocation.Amount)))));
     }
 
     public async Task<IEnumerable<UserBillGroupDto>> Get(UserClaims user, CancellationToken cancellationToken = default)
     {
         var billGroups = await _billGroupRepository.GetByUserId(user.Id, cancellationToken);
 
-        if (!billGroups.Any())
+        if (billGroups is null)
         {
             throw new NotFoundException(nameof(BillGroup));
         }
-        
+
         return billGroups.Select(billGroup =>
             new UserBillGroupDto(
                 billGroup.Id,
                 billGroup.Name,
-                billGroup.Bills.Sum(bill => bill.Amount),
-                billGroup.Bills.Where(bill => bill.CreatedBy == user.Id).Sum(bill => bill.Amount)));
+                TotalAmount: billGroup.Bills.Sum(bill => bill.Amount),
+                CurrentUserAmount: GetUserAmount(user.Id, billGroup)));
+    }
+
+    private static decimal GetUserAmount(long userId, BillGroup billGroup)
+    {
+        return billGroup.Bills
+            .SelectMany(x => x.BillAllocations)
+            .Where(x => x.UserId == userId)
+            .Sum(x => x.Amount);
     }
 
     public async Task<long> Create(UserClaims currentUser, CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default)
     {
         await ValidateAllUsersExist(createBillGroup.UserIds, cancellationToken);
-        
+
         var billGroup = new BillGroup(createBillGroup.Name, currentUser.Id);
         foreach (var userId in createBillGroup.UserIds)
         {
             billGroup.UserBillGroups.Add(new UserBillGroup(userId, currentUser.Id));
         }
-        
+
         billGroup = await _billGroupRepository.Create(billGroup, cancellationToken);
 
         return billGroup.Id;

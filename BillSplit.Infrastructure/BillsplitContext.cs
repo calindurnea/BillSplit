@@ -1,4 +1,6 @@
-﻿using BillSplit.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+using BillSplit.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BillSplit.Persistence;
@@ -48,6 +50,11 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
             entity.HasOne(d => d.DeletedByNavigation).WithMany(p => p.BillDeletedByNavigations)
                 .HasForeignKey(d => d.DeletedBy)
                 .HasConstraintName("Bill_Deleted_By_User__fk");
+
+            entity.HasOne(d => d.PaidByNavigation).WithMany(p => p.BillPaidByNavigations)
+                .HasForeignKey(d => d.PaidBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Bill_Paid_By_User_Id_fk");
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.BillUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
@@ -132,6 +139,8 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
             entity.HasKey(e => e.Id).HasName("UserBillGroup_pk");
 
             entity.ToTable("UserBillGroup", "billsplit");
+
+            entity.HasIndex(e => new { e.UserId, e.BillGroupId }, "UserBillGroup_UserId_BillGroupId_uindex").IsUnique();
 
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
 

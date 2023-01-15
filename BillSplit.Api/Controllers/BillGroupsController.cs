@@ -18,34 +18,22 @@ public class BillGroupsController : ControllerBase
     }
     
     [HttpGet(Name = nameof(GetAllBillGroups))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<UserBillGroupDto>))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAllBillGroups(CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-    
-        if (user is null)
-        {
-            return Unauthorized();
-        }
-        
         var billGroups = await _billGroupsService.Get(user, cancellationToken);
         return Ok(billGroups);
     }
 
-    [HttpGet("{id:long}", Name = nameof(GetBillGroupWithId))]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [HttpGet("{id:long}", Name = nameof(GetBillGroupById))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BillGroupDto))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetBillGroupWithId([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetBillGroupById([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-
-        if (user is null)
-        {
-            return Unauthorized();
-        }
-
         var billGroup = await _billGroupsService.Get(user, id, cancellationToken);
         return Ok(billGroup);
     }
@@ -57,13 +45,7 @@ public class BillGroupsController : ControllerBase
     public async Task<IActionResult> CreateBillGroup([BindRequired, FromBody] CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-
-        if (user is null)
-        {
-            return Unauthorized();
-        }
-
         var id = await _billGroupsService.Create(user, createBillGroup, cancellationToken);
-        return CreatedAtAction(nameof(GetBillGroupWithId), new { id }, new { id });
+        return CreatedAtAction(nameof(GetBillGroupById), new { id }, new { id });
     }
 }
