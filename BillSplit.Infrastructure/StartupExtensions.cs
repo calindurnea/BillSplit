@@ -13,9 +13,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IBillRepository, BillRepository>();
         services.AddScoped<IBillGroupRepository, BillGroupRepository>();
+        services.AddScoped<IBillAllocationRepository, BillAllocationRepository>();
+        services.AddScoped<IUserBillGroupRepository, UserBillGroupRepository>();
         return services;
     }
-    
+
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<BillsplitContext>(options => options.UseNpgsql(configuration.GetConnectionString("ApplicationContext")));

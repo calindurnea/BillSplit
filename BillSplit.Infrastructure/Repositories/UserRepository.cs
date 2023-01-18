@@ -1,4 +1,5 @@
 ﻿using BillSplit.Domain.Models;
+using BillSplit.Persistence.Extensions;
 using BillSplit.Persistence.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,27 +24,27 @@ internal sealed class UserRepository : IUserRepository
 
     public async Task<IEnumerable<User>> Get(CancellationToken cancellationToken = default)
     {
-        return await _applicationContext.Users.AsNoTracking().ToListAsync(cancellationToken);
+        return await _applicationContext.Users.WithNoTracking().Where(x => !x.IsDeleted).ToListAsync(cancellationToken);
     }
 
     public async Task<User?> Get(string email, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => string.Equals(x.Email, email), cancellationToken);
+            .WithNoTracking()
+            .FirstOrDefaultAsync(x => string.Equals(x.Email, email) && !x.IsDeleted, cancellationToken);
     }
 
     public async Task<User?> Get(long id, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.Users
-            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
     }
 
     public async Task<IEnumerable<User>?> Get(IEnumerable<long> ids, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.Users
-            .AsNoTracking()
-            .Where(x => ids.Contains(x.Id))
+            .WithNoTracking()
+            .Where(x => ids.Contains(x.Id) && !x.IsDeleted)
             .ToListAsync(cancellationToken);
     }
 
@@ -55,15 +56,15 @@ internal sealed class UserRepository : IUserRepository
 
     public async Task<bool> IsEmailInUse(string email, CancellationToken cancellationToken = default)
     {
-        return await _applicationContext.Users.AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Email == email, cancellationToken: cancellationToken)
+        return await _applicationContext.Users.WithNoTracking()
+                .FirstOrDefaultAsync(x => x.Email == email && !x.IsDeleted, cancellationToken: cancellationToken)
             is not null;
     }
-    
+
     public async Task<bool> IsPhoneNumberInUse(long phoneNumber, CancellationToken cancellationToken = default)
     {
-        return await _applicationContext.Users.AsNoTracking()
-                .FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber, cancellationToken: cancellationToken)
+        return await _applicationContext.Users.WithNoTracking()
+                .FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber && !x.IsDeleted, cancellationToken: cancellationToken)
             is not null;
     }
 }

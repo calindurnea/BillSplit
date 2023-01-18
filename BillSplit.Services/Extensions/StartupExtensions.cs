@@ -11,6 +11,7 @@ public static class StartupExtensions
     {
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IBillGroupService, BillGroupService>();
+        services.AddScoped<IBillService, BillService>();
         services.AddScoped<IAuthorizationService, AuthorizationService>();
 
         var jwtSettings = new JwtSettings();

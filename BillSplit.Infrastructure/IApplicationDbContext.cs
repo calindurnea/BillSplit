@@ -7,8 +7,8 @@ public interface IApplicationDbContext
 {
     DbSet<User> Users { get; }
     DbSet<Bill> Bills { get; }
-    DbSet<BillGroup?> BillGroups { get; }
-    DbSet<UserBillGroup?> UserBillGroups { get; }
-    DbSet<BillAllocation?> BillAllocations { get; }
+    DbSet<BillGroup> BillGroups { get; }
+    DbSet<UserBillGroup> UserBillGroups { get; }
+    DbSet<BillAllocation> BillAllocations { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

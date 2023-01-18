@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using BillSplit.Domain.Models;
+﻿using BillSplit.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BillSplit.Persistence;

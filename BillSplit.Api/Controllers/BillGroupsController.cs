@@ -16,7 +16,7 @@ public class BillGroupsController : ControllerBase
     {
         _billGroupsService = billGroupsService ?? throw new ArgumentNullException(nameof(billGroupsService));
     }
-    
+
     [HttpGet(Name = nameof(GetAllBillGroups))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<UserBillGroupDto>))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -37,7 +37,40 @@ public class BillGroupsController : ControllerBase
         var billGroup = await _billGroupsService.Get(user, id, cancellationToken);
         return Ok(billGroup);
     }
-    
+
+    [HttpPut("{id:long}/add-user", Name = nameof(AddBillGroupUser))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> AddBillGroupUser([FromRoute, BindRequired] long id, [BindRequired, FromQuery] long userId, CancellationToken cancellationToken = default)
+    {
+        var user = HttpContext.User.GetCurrentUser();
+        await _billGroupsService.AddUser(user, id, userId, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPut("{id:long}/remove-user", Name = nameof(RemoveBillGroupUser))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RemoveBillGroupUser([FromRoute, BindRequired] long id, [BindRequired, FromQuery] long userId, CancellationToken cancellationToken = default)
+    {
+        var user = HttpContext.User.GetCurrentUser();
+        await _billGroupsService.RemoveUser(user, id, userId, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPut("{id:long}/name", Name = nameof(UpdateBillGroupName))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> UpdateBillGroupName([FromRoute, BindRequired] long id, [BindRequired, FromBody] UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken = default)
+    {
+        var user = HttpContext.User.GetCurrentUser();
+        await _billGroupsService.UpdateName(user, id, updateBillGroupName, cancellationToken);
+        return NoContent();
+    }
+
     [HttpPost(Name = nameof(CreateBillGroup))]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

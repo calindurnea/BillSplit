@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BillSplit.Domain.Models;
+﻿namespace BillSplit.Domain.Models;
 
 public partial class Bill
 {

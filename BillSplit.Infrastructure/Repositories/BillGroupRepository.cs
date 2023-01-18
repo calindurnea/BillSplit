@@ -1,4 +1,5 @@
 using BillSplit.Domain.Models;
+using BillSplit.Persistence.Extensions;
 using BillSplit.Persistence.Repositories.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,24 +14,12 @@ internal class BillGroupRepository : IBillGroupRepository
         _applicationContext = applicationContext ?? throw new ArgumentNullException(nameof(applicationContext));
     }
 
-    public async Task<IEnumerable<BillGroup>?> GetByUserId(long userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<BillGroup>?> Get(CancellationToken cancellationToken = default, bool withNoTracking = true, params long[] ids)
     {
         return await _applicationContext.BillGroups
-            .AsNoTracking()
-            .Where(billGroup => billGroup.CreatedBy == userId && billGroup.IsDeleted == false)
-            .Include(billGroup => billGroup.Bills)
-            .ThenInclude(bill=> bill.BillAllocations)
+            .WithNoTracking(withNoTracking)
+            .Where(x => ids.Contains(x.Id) && !x.IsDeleted)
             .ToListAsync(cancellationToken);
-    }
-
-    public async Task<BillGroup?> Get(long id, CancellationToken cancellationToken = default)
-    {
-        return await _applicationContext.BillGroups
-            .AsNoTracking()
-            .Include(billGroup => billGroup.Bills)
-            .ThenInclude(billGroup => billGroup.BillAllocations)
-            .Include(billGroup => billGroup.UserBillGroups)
-            .FirstOrDefaultAsync(billGroup => billGroup.Id == id, cancellationToken);
     }
 
     public async Task<BillGroup> Create(BillGroup billGroup, CancellationToken cancellationToken = default)
@@ -39,5 +28,11 @@ internal class BillGroupRepository : IBillGroupRepository
         await _applicationContext.SaveChangesAsync(cancellationToken);
 
         return result.Entity;
+    }
+
+    public async Task Update(BillGroup billGroup, CancellationToken cancellationToken = default)
+    {
+        _applicationContext.BillGroups.Update(billGroup);
+        await _applicationContext.SaveChangesAsync(cancellationToken);
     }
 }
