@@ -16,7 +16,7 @@ public class BillsController : ControllerBase
     {
         _billService = billService ?? throw new ArgumentNullException(nameof(billService));
     }
-    
+
     [HttpGet("{id:long}", Name = nameof(Get))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BillDto))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

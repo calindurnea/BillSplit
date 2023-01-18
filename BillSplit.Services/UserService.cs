@@ -15,7 +15,7 @@ internal sealed class UserService : IUserService
     {
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
     }
-    
+
     public async Task<long> Create(UpsertUserDto request, CancellationToken cancellationToken = default)
     {
         if (await _userRepository.IsEmailInUse(request.Email.ToLowerInvariant(), cancellationToken))
@@ -72,7 +72,7 @@ internal sealed class UserService : IUserService
     public async Task<IEnumerable<UserDto>> Get(IEnumerable<long> ids, CancellationToken cancellationToken = default)
     {
         ids = ids.ToList();
-        
+
         var users = (await _userRepository.Get(ids, cancellationToken))
             .ThrowIfNull(ids.ToArray())
             .ToList();

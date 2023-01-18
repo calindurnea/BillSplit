@@ -4,7 +4,7 @@
     {
         public UserBillAllocationException(string message) : base(message)
         {
-        
+
         }
     }
 }

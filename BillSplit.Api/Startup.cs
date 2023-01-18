@@ -30,7 +30,7 @@ public class Startup
         services.AddValidators();
 
         // services.AddOutputCache();
-        
+
         services.ConfigureAuthentication(Configuration);
 
         services.AddAuthorization(options =>

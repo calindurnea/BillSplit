@@ -27,7 +27,7 @@ internal class AuthorizationService : IAuthorizationService
         {
             throw new PasswordCheckException("The password did not match with the repeated password");
         }
-        
+
         var user = (await _userRepository.Get(request.UserId, cancellationToken)).ThrowIfNull(request.UserId);
 
         if (!string.IsNullOrWhiteSpace(user.Password))
@@ -44,9 +44,9 @@ internal class AuthorizationService : IAuthorizationService
         {
             throw new PasswordCheckException("The new password did not match with the repeated new password");
         }
-        
+
         var existingUser = (await _userRepository.Get(user.Id, cancellationToken)).ThrowIfNull(user.Id);
-        
+
         var passwordCheck = VerifyPassword(existingUser, existingUser.Password, request.Password);
 
         if (passwordCheck == PasswordVerificationResult.Failed)
@@ -56,7 +56,7 @@ internal class AuthorizationService : IAuthorizationService
 
         await UpdatePassword(existingUser.Id, request.NewPassword, cancellationToken);
     }
-    
+
     private async Task UpdatePassword(long userId, string password, CancellationToken cancellationToken = default)
     {
         var user = (await _userRepository.Get(userId, cancellationToken)).ThrowIfNull(userId);
@@ -94,7 +94,7 @@ internal class AuthorizationService : IAuthorizationService
         {
             throw new AuthenticationException("Wrong username or password");
         }
-        
+
         var token = _jwtTokenGenerator.Generate(user.Id);
 
         return new LoginResponseDto(token);

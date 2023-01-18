@@ -17,7 +17,7 @@ public class AuthorizationController : ControllerBase
     {
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
     }
-    
+
     [AllowAnonymous]
     [HttpPost("password")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

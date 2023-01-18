@@ -131,7 +131,7 @@ public class BillGroupService : IBillGroupService
 
         var userBillGroupAllocations = await _billAllocationRepository.GetUserBillGroupAllocations(userId, billGroup.Id, cancellationToken);
 
-        if (userBillGroupAllocations.Any(x=>x.Amount > 0))
+        if (userBillGroupAllocations.Any(x => x.Amount > 0))
         {
             throw new UserBillAllocationException("This user cannot be removed because of unsettled bill allocations");
         }
