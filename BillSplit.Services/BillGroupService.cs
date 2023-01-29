@@ -34,7 +34,7 @@ public class BillGroupService : IBillGroupService
 
     public async Task<BillGroupDto> Get(UserClaims user, long id, CancellationToken cancellationToken = default)
     {
-        var billGroup = (await _billGroupRepository.Get(cancellationToken, true, id)).ThrowIfNull(id).First();
+        var billGroup = (await _billGroupRepository.Get(cancellationToken, true, id)).FirstOrDefault().ThrowIfNull(id);
 
         if (!UserHasAccess(user, billGroup))
         {
@@ -70,7 +70,8 @@ public class BillGroupService : IBillGroupService
                         allocation.Id,
                         allocation.UserId,
                         billsAllocationsUsers.First(x => x.Id == allocation.UserId).Name,
-                        allocation.Amount)))));
+                        allocation.Amount,
+                        allocation.PaidAmount)))));
     }
 
     public async Task<IEnumerable<UserBillGroupDto>> Get(UserClaims user, CancellationToken cancellationToken = default)
@@ -91,7 +92,7 @@ public class BillGroupService : IBillGroupService
         return billGroup.Bills
             .SelectMany(x => x.BillAllocations)
             .Where(x => x.UserId == userId)
-            .Sum(x => x.Amount);
+            .Sum(x => x.Amount - x.PaidAmount);
     }
 
     public async Task<long> Create(UserClaims user, CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default)
@@ -99,6 +100,8 @@ public class BillGroupService : IBillGroupService
         await ValidateAllUsersExist(createBillGroup.UserIds, cancellationToken);
 
         var billGroup = new BillGroup(createBillGroup.Name, user.Id);
+        billGroup.UserBillGroups.Add(new UserBillGroup(user.Id, user.Id));
+
         foreach (var userId in createBillGroup.UserIds)
         {
             billGroup.UserBillGroups.Add(new UserBillGroup(userId, user.Id));
@@ -131,9 +134,9 @@ public class BillGroupService : IBillGroupService
 
         var userBillGroupAllocations = await _billAllocationRepository.GetUserBillGroupAllocations(userId, billGroup.Id, cancellationToken);
 
-        if (userBillGroupAllocations.Any(x => x.Amount > 0))
+        if (userBillGroupAllocations.Any(x => x.Amount > x.PaidAmount))
         {
-            throw new UserBillAllocationException("This user cannot be removed because of unsettled bill allocations");
+            throw new UnsettledBillAllocationsException();
         }
 
         userBillGroup.IsDeleted = true;
@@ -153,6 +156,23 @@ public class BillGroupService : IBillGroupService
         }
 
         billGroup.UserBillGroups.Add(new UserBillGroup(userId, user.Id));
+        await _billGroupRepository.Update(billGroup, cancellationToken);
+    }
+
+    public async Task Delete(UserClaims user, long id, CancellationToken cancellationToken = default)
+    {
+        var billGroup = await GetBillGroupIfAccessible(user, id, false, cancellationToken);
+        var billGroupAllocations = await _billAllocationRepository.GetBillGroupAllocations(id, cancellationToken);
+
+        if (billGroupAllocations.Any(x => x.Amount > x.PaidAmount))
+        {
+            throw new UnsettledBillAllocationsException();
+        }
+
+        billGroup.IsDeleted = true;
+        billGroup.DeletedBy = user.Id;
+        billGroup.DeletedDate = DateTime.UtcNow;
+
         await _billGroupRepository.Update(billGroup, cancellationToken);
     }
 

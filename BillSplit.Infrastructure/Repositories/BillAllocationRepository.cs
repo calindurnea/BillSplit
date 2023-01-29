@@ -37,5 +37,13 @@ namespace BillSplit.Persistence.Repositories
                 .Where(x => x.UserId == userId && x.Bill.BillGroupId == billGroupId && !x.IsDeleted)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<IEnumerable<BillAllocation>> GetBillGroupAllocations(long billGroupId, CancellationToken cancellationToken = default)
+        {
+            return await _applicationContext.BillAllocations
+                .WithNoTracking()
+                .Where(x => x.Bill.BillGroupId == billGroupId && !x.IsDeleted)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

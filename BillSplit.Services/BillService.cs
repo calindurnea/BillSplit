@@ -63,7 +63,8 @@ namespace BillSplit.Services
                         x.Id,
                         x.UserId,
                         billAllocationUsers.Result.First(user => user.Id == x.UserId).Name,
-                        x.Amount)));
+                        x.Amount,
+                        x.PaidAmount)));
         }
     }
 }

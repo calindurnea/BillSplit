@@ -13,10 +13,10 @@ namespace BillSplit.Services.Extensions
 
             if (id is not null)
             {
-                throw new NotFoundException(nameof(T), id);
+                throw new NotFoundException(typeof(T), id);
             }
 
-            throw new NotFoundException(nameof(T));
+            throw new NotFoundException(typeof(T));
         }
     }
 }

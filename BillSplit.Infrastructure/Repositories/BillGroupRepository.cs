@@ -14,7 +14,7 @@ internal class BillGroupRepository : IBillGroupRepository
         _applicationContext = applicationContext ?? throw new ArgumentNullException(nameof(applicationContext));
     }
 
-    public async Task<IEnumerable<BillGroup>?> Get(CancellationToken cancellationToken = default, bool withNoTracking = true, params long[] ids)
+    public async Task<IEnumerable<BillGroup>> Get(CancellationToken cancellationToken = default, bool withNoTracking = true, params long[] ids)
     {
         return await _applicationContext.BillGroups
             .WithNoTracking(withNoTracking)

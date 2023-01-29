@@ -9,6 +9,7 @@ public partial class BillAllocation
     public long UserId { get; set; }
 
     public decimal Amount { get; set; }
+    public decimal PaidAmount { get; set; }
 
     public long CreatedBy { get; set; }
 

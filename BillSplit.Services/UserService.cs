@@ -80,7 +80,7 @@ internal sealed class UserService : IUserService
         if (users.Count != ids.Count())
         {
             var idsNotFound = ids.Where(id => users.Select(u => u.Id).All(uid => uid != id));
-            throw new NotFoundException(nameof(User), idsNotFound.ToArray());
+            throw new NotFoundException(typeof(User), idsNotFound.ToArray());
         }
 
         return users.Select(MapToDto);
