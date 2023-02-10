@@ -11,12 +11,12 @@ public class CreateBillDtoValidator : AbstractValidator<CreateBillDto>
     {
         RuleFor(_ => _.BillGroupId).GreaterThan(0);
         RuleFor(_ => _.PaidById).GreaterThan(0);
-            
+
         RuleFor(_ => _.Amount).GreaterThan(0)
             .Must((args, amount) => EqualSumOfAllocations(args.BillAllocations, amount))
             .WithMessage("The bill amount must equal to the sum of the allocations");
         RuleFor(_ => _.Comment).MaximumLength(512);
-            
+
         RuleFor(_ => _.BillAllocations)
             .Must((args, billAllocations) => HaveUniqueUserIds(billAllocations))
             .WithMessage("A user can have maximum one bill allocation");

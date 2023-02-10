@@ -87,7 +87,7 @@ internal class BillService : IBillService
         var bill = await _billRepository.Create(
             new Bill(
                 createBill.Amount,
-                createBill.Comment, 
+                createBill.Comment,
                 user.Id,
                 createBill.BillGroupId,
                 createBill.PaidById,

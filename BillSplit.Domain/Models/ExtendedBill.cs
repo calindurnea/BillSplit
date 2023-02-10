@@ -4,9 +4,9 @@
     {
         public Bill()
         {
-            
+
         }
-        
+
         public Bill(decimal amount, string comment, long createdBy, long billGroupId, long paidBy, ICollection<BillAllocation> billAllocations)
         {
             Amount = decimal.Round(amount, 2);

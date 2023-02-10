@@ -27,7 +27,7 @@ public class BillsController : ControllerBase
         var billGroup = await _billService.Get(user, id, cancellationToken);
         return Ok(billGroup);
     }
-    
+
     [HttpPost(Name = nameof(CreateBill))]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
