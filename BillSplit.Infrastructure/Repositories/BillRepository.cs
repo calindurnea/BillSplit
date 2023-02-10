@@ -27,9 +27,16 @@ internal sealed class BillRepository : IBillRepository
         return await _applicationContext.Bills.WithNoTracking().Where(x => !x.IsDeleted).ToListAsync(cancellationToken);
     }
 
-    public async Task<Bill?> Get(long id, CancellationToken cancellationToken = default)
+    public async Task<Bill?> Get(long id, bool? withAllocations = false, bool withNoTracking = true, CancellationToken cancellationToken = default)
     {
-        return await _applicationContext.Bills.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
+        var billsQuery = _applicationContext.Bills.WithNoTracking(withNoTracking);
+
+        if (withAllocations == true)
+        {
+            billsQuery = billsQuery.Include(x => x.BillAllocations);
+        }
+
+        return await billsQuery.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
     }
 
     public async Task Update(Bill bill, CancellationToken cancellationToken = default)
@@ -37,7 +44,7 @@ internal sealed class BillRepository : IBillRepository
         _applicationContext.Bills.Update(bill);
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
-    
+
     public async Task<IEnumerable<Bill>> GetGroupBills(long billGroupId, bool? withAllocations = false, CancellationToken cancellationToken = default)
     {
         var billQuery = _applicationContext.Bills.WithNoTracking()
