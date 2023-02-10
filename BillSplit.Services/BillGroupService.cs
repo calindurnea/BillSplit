@@ -177,7 +177,16 @@ public class BillGroupService : IBillGroupService
 
     public async Task DeleteBillGroup(UserClaims user, long id, CancellationToken cancellationToken = default)
     {
-        var billGroup = await GetBillGroupIfAccessible(user, id, false, cancellationToken);
+        BillGroup billGroup;
+        try
+        {
+            billGroup = await GetBillGroupIfAccessible(user, id, false, cancellationToken);
+        }
+        catch (NotFoundException)
+        {
+            return;
+        }
+        
         var billGroupAllocations = await _billAllocationRepository.GetBillGroupAllocations(id, cancellationToken);
 
         if (billGroupAllocations.Any(x => x.Amount > x.PaidAmount))
@@ -194,7 +203,7 @@ public class BillGroupService : IBillGroupService
 
     private async Task<BillGroup> GetBillGroupIfAccessible(UserClaims user, long billGroupId, bool withNoTracking = true, CancellationToken cancellationToken = default)
     {
-        var billGroup = (await _billGroupRepository.Get(cancellationToken, withNoTracking, billGroupId)).ThrowIfNull(billGroupId).First();
+        var billGroup = (await _billGroupRepository.Get(cancellationToken, withNoTracking, billGroupId)).FirstOrDefault().ThrowIfNull(billGroupId);
 
         var userBillGroupIds = (await _userBillGroupRepository.GetUserBillGroupIds(user.Id, cancellationToken)).ThrowIfNull();
 

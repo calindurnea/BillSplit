@@ -38,4 +38,15 @@ public class BillsController : ControllerBase
         var id = await _billService.CreateBill(user, createBill, cancellationToken);
         return CreatedAtAction(nameof(GetBills), new { id }, new { id });
     }
+    
+    [HttpDelete("{id:long}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> DeleteBill([BindRequired, FromRoute] long id, CancellationToken cancellationToken = default)
+    {
+        var user = HttpContext.User.GetCurrentUser();
+        await _billService.Delete(user, id, cancellationToken);
+        return NoContent();
+    }
 }

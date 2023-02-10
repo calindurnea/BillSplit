@@ -7,4 +7,5 @@ public interface IBillService
 {
     Task<BillDto> GetBill(UserClaims user, long id, CancellationToken cancellationToken = default);
     Task<long> CreateBill(UserClaims user, CreateBillDto createBill, CancellationToken cancellationToken = default);
+    Task Delete(UserClaims user, long id, CancellationToken cancellationToken = default);
 }
