@@ -16,7 +16,7 @@ internal class JwtTokenGenerator : IJwtTokenGenerator
         _jwtSettings = jwtSettings ?? throw new ArgumentNullException(nameof(jwtSettings));
     }
 
-    public string Generate(long id)
+    public string GenerateToken(long id)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var jwtSecretKey = Encoding.ASCII.GetBytes(_jwtSettings.Key);

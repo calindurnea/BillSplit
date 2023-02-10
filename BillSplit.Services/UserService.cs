@@ -16,7 +16,7 @@ internal sealed class UserService : IUserService
         _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
     }
 
-    public async Task<long> Create(UpsertUserDto request, CancellationToken cancellationToken = default)
+    public async Task<long> CreateUser(UpsertUserDto request, CancellationToken cancellationToken = default)
     {
         if (await _userRepository.IsEmailInUse(request.Email.ToLowerInvariant(), cancellationToken))
         {
@@ -33,7 +33,7 @@ internal sealed class UserService : IUserService
         return result.Id;
     }
 
-    public async Task Update(long id, UpsertUserDto request, CancellationToken cancellationToken = default)
+    public async Task UpdateUser(long id, UpsertUserDto request, CancellationToken cancellationToken = default)
     {
         var user = (await _userRepository.Get(id, cancellationToken)).ThrowIfNull(id);
 
@@ -57,19 +57,19 @@ internal sealed class UserService : IUserService
         await _userRepository.Update(user, cancellationToken);
     }
 
-    public async Task<IEnumerable<UserDto>> Get(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserDto>> GetUsers(CancellationToken cancellationToken = default)
     {
         var users = await _userRepository.Get(cancellationToken);
         return users.Select(MapToDto);
     }
 
-    public async Task<UserDto> Get(long id, CancellationToken cancellationToken = default)
+    public async Task<UserDto> GetUsers(long id, CancellationToken cancellationToken = default)
     {
         var user = (await _userRepository.Get(id, cancellationToken)).ThrowIfNull(id);
         return MapToDto(user);
     }
 
-    public async Task<IEnumerable<UserDto>> Get(IEnumerable<long> ids, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserDto>> GetUsers(IEnumerable<long> ids, CancellationToken cancellationToken = default)
     {
         ids = ids.ToList();
 

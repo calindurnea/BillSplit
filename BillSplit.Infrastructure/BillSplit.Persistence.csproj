@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>  <UserSecretsId>d78c9b23-b438-4d85-84be-77387896ce29</UserSecretsId>
+﻿<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.2">
@@ -9,7 +9,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BillSplit.Domain\BillSplit.Domain.csproj" />

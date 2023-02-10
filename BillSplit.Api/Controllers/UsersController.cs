@@ -25,7 +25,7 @@ public class UsersController : ControllerBase
     {
         var user = HttpContext.User.GetCurrentUser();
 
-        var users = await _userService.Get(user.Id, cancellationToken);
+        var users = await _userService.GetUsers(user.Id, cancellationToken);
         return Ok(users);
     }
 
@@ -33,7 +33,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken = default)
     {
-        var users = await _userService.Get(cancellationToken);
+        var users = await _userService.GetUsers(cancellationToken);
         return Ok(users);
     }
 
@@ -41,15 +41,15 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUserWithId([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
-        var user = await _userService.Get(id, cancellationToken);
+        var user = await _userService.GetUsers(id, cancellationToken);
         return Ok(user);
     }
 
-    [HttpPut("{id:long}", Name = nameof(Update))]
+    [HttpPut("{id:long}", Name = nameof(UpdateUser))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> Update([FromRoute, BindRequired] long id, [FromBody, BindRequired] UpsertUserDto upsertUser, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> UpdateUser([FromRoute, BindRequired] long id, [FromBody, BindRequired] UpsertUserDto upsertUser, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
 
@@ -58,18 +58,18 @@ public class UsersController : ControllerBase
             return Forbid("You can only update your own data");
         }
 
-        await _userService.Update(id, upsertUser, cancellationToken);
+        await _userService.UpdateUser(id, upsertUser, cancellationToken);
         return NoContent();
     }
 
-    [HttpPost(Name = nameof(Create))]
+    [HttpPost(Name = nameof(CreateUser))]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [AllowAnonymous]
-    public async Task<IActionResult> Create([FromBody, BindRequired] UpsertUserDto upsertUser, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> CreateUser([FromBody, BindRequired] UpsertUserDto upsertUser, CancellationToken cancellationToken = default)
     {
-        var id = await _userService.Create(upsertUser, cancellationToken);
+        var id = await _userService.CreateUser(upsertUser, cancellationToken);
         return CreatedAtAction(nameof(GetUserWithId), new { id }, new { id });
     }
 }

@@ -95,7 +95,7 @@ internal class AuthorizationService : IAuthorizationService
             throw new AuthenticationException("Wrong username or password");
         }
 
-        var token = _jwtTokenGenerator.Generate(user.Id);
+        var token = _jwtTokenGenerator.GenerateToken(user.Id);
 
         return new LoginResponseDto(token);
     }

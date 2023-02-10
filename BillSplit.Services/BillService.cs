@@ -32,7 +32,7 @@ internal class BillService : IBillService
         _billGroupRepository = billGroupRepository ?? throw new ArgumentNullException(nameof(billGroupRepository));
     }
 
-    public async Task<BillDto> Get(UserClaims user, long id, CancellationToken cancellationToken = default)
+    public async Task<BillDto> GetBill(UserClaims user, long id, CancellationToken cancellationToken = default)
     {
         var bill = (await _billRepository.Get(id, cancellationToken)).ThrowIfNull(id);
 
@@ -45,9 +45,9 @@ internal class BillService : IBillService
 
         var billAllocations = (await _billAllocationRepository.GetBillAllocations(bill.Id, cancellationToken)).ToList();
 
-        var createdByUser = await _userService.Get(bill.CreatedBy, cancellationToken);
-        var paidByUser = await _userService.Get(bill.PaidBy, cancellationToken);
-        var billAllocationUsers = await _userService.Get(billAllocations.Select(x => x.UserId), cancellationToken);
+        var createdByUser = await _userService.GetUsers(bill.CreatedBy, cancellationToken);
+        var paidByUser = await _userService.GetUsers(bill.PaidBy, cancellationToken);
+        var billAllocationUsers = await _userService.GetUsers(billAllocations.Select(x => x.UserId), cancellationToken);
 
         return new BillDto(
             bill.Id,
@@ -66,7 +66,7 @@ internal class BillService : IBillService
                     x.PaidAmount)));
     }
 
-    public async Task<long> Create(UserClaims user, CreateBillDto createBill, CancellationToken cancellationToken = default)
+    public async Task<long> CreateBill(UserClaims user, CreateBillDto createBill, CancellationToken cancellationToken = default)
     {
         (await _billGroupRepository.Get(cancellationToken, true, createBill.BillGroupId)).ThrowIfNull(createBill.BillGroupId);
 
