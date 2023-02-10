@@ -2,5 +2,5 @@
 
 public interface IJwtTokenGenerator
 {
-    string Generate(long id);
+    string GenerateToken(long id);
 }

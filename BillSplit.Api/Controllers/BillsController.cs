@@ -17,14 +17,14 @@ public class BillsController : ControllerBase
         _billService = billService ?? throw new ArgumentNullException(nameof(billService));
     }
 
-    [HttpGet("{id:long}", Name = nameof(Get))]
+    [HttpGet("{id:long}", Name = nameof(GetBills))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BillDto))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Get([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetBills([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        var billGroup = await _billService.Get(user, id, cancellationToken);
+        var billGroup = await _billService.GetBill(user, id, cancellationToken);
         return Ok(billGroup);
     }
 
@@ -35,8 +35,8 @@ public class BillsController : ControllerBase
     public async Task<IActionResult> CreateBill([BindRequired, FromBody] CreateBillDto createBill, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        var id = await _billService.Create(user, createBill, cancellationToken);
-        return CreatedAtAction(nameof(Get), new { id }, new { id });
+        var id = await _billService.CreateBill(user, createBill, cancellationToken);
+        return CreatedAtAction(nameof(GetBills), new { id }, new { id });
     }
     
     [HttpDelete("{id:long}")]

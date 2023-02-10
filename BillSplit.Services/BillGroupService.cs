@@ -10,7 +10,7 @@ using BillSplit.Services.Extensions;
 
 namespace BillSplit.Services;
 
-public class BillGroupService : IBillGroupService
+internal sealed class BillGroupService : IBillGroupService
 {
     private readonly IBillGroupRepository _billGroupRepository;
     private readonly IUserBillGroupRepository _userBillGroupRepository;
@@ -32,9 +32,9 @@ public class BillGroupService : IBillGroupService
         _billAllocationRepository = billAllocationRepository ?? throw new ArgumentNullException(nameof(billAllocationRepository));
     }
 
-    public async Task<BillGroupDto> Get(UserClaims user, long id, CancellationToken cancellationToken = default)
+    public async Task<BillGroupDto> GetBillGroups(UserClaims user, long id, CancellationToken cancellationToken = default)
     {
-        var billGroup = (await _billGroupRepository.Get(cancellationToken, true, id)).FirstOrDefault().ThrowIfNull(id);
+        var billGroup = (await _billGroupRepository.GetBillGroups(cancellationToken, true, id)).FirstOrDefault().ThrowIfNull(id);
 
         if (!UserHasAccess(user, billGroup))
         {
@@ -43,8 +43,8 @@ public class BillGroupService : IBillGroupService
 
         var bills = (await _billRepository.GetGroupBills(billGroup.Id, false, cancellationToken)).ToList();
 
-        var billsCreatedBy = _userService.Get(bills.Select(x => x.CreatedBy), cancellationToken);
-        var billsPaidBy = _userService.Get(bills.Select(x => x.PaidBy), cancellationToken);
+        var billsCreatedBy = _userService.GetUsers(bills.Select(x => x.CreatedBy), cancellationToken);
+        var billsPaidBy = _userService.GetUsers(bills.Select(x => x.PaidBy), cancellationToken);
         var billsAllocations = _billAllocationRepository.GetBillsAllocations(bills.Select(x => x.Id), cancellationToken);
 
         var tasks = new List<Task>();
@@ -52,7 +52,7 @@ public class BillGroupService : IBillGroupService
 
         await Task.WhenAll(tasks);
 
-        var billsAllocationsUsers = await _userService.Get(billsAllocations.Result.Select(x => x.UserId), cancellationToken);
+        var billsAllocationsUsers = await _userService.GetUsers(billsAllocations.Result.Select(x => x.UserId), cancellationToken);
 
         return new BillGroupDto(
             billGroup.Id,
@@ -74,10 +74,10 @@ public class BillGroupService : IBillGroupService
                         allocation.PaidAmount)))));
     }
 
-    public async Task<IEnumerable<UserBillGroupDto>> Get(UserClaims user, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserBillGroupDto>> GetBillGroups(UserClaims user, CancellationToken cancellationToken = default)
     {
         var userBillGroupIds = (await _userBillGroupRepository.GetUserBillGroupIds(user.Id, cancellationToken)).ThrowIfNull(user.Id).ToList();
-        var billGroups = (await _billGroupRepository.Get(cancellationToken, true, userBillGroupIds.ToArray()))
+        var billGroups = (await _billGroupRepository.GetBillGroups(cancellationToken, true, userBillGroupIds.ToArray()))
             .ThrowIfNull(userBillGroupIds.ToArray())
             .ToList();
 
@@ -111,7 +111,7 @@ public class BillGroupService : IBillGroupService
         return userOwedAllocations - userOwingAllocations;
     }
 
-    public async Task<long> Create(UserClaims user, CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default)
+    public async Task<long> CreateBillGroup(UserClaims user, CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default)
     {
         await ValidateAllUsersExist(createBillGroup.UserIds, cancellationToken);
 
@@ -123,25 +123,25 @@ public class BillGroupService : IBillGroupService
             billGroup.UserBillGroups.Add(new UserBillGroup(userId, user.Id));
         }
 
-        billGroup = await _billGroupRepository.Create(billGroup, cancellationToken);
+        billGroup = await _billGroupRepository.CreateBillGroup(billGroup, cancellationToken);
 
         return billGroup.Id;
     }
 
-    public async Task UpdateName(UserClaims user, long id, UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken = default)
+    public async Task UpdateBillGroupName(UserClaims user, long id, UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken = default)
     {
         var billGroup = await GetBillGroupIfAccessible(user, id, false, cancellationToken);
 
         billGroup.Name = updateBillGroupName.Name;
 
-        await _billGroupRepository.Update(billGroup, cancellationToken);
+        await _billGroupRepository.UpdateBillGroup(billGroup, cancellationToken);
     }
 
-    public async Task RemoveUser(UserClaims user, long id, long userId, CancellationToken cancellationToken = default)
+    public async Task RemoveBillGroupUser(UserClaims user, long id, long userId, CancellationToken cancellationToken = default)
     {
         var billGroup = await GetBillGroupIfAccessible(user, id, false, cancellationToken);
 
-        var userBillGroup = await _userBillGroupRepository.Get(userId, billGroup.Id, false, cancellationToken);
+        var userBillGroup = await _userBillGroupRepository.GetUserBillGroup(userId, billGroup.Id, false, cancellationToken);
 
         if (userBillGroup is null)
         {
@@ -157,14 +157,14 @@ public class BillGroupService : IBillGroupService
 
         userBillGroup.IsDeleted = true;
         userBillGroup.DeletedBy = user.Id;
-        await _userBillGroupRepository.Update(userBillGroup, cancellationToken);
+        await _userBillGroupRepository.UpdateUserBillGroup(userBillGroup, cancellationToken);
     }
 
-    public async Task AddUser(UserClaims user, long id, long userId, CancellationToken cancellationToken = default)
+    public async Task AddBillGroupUser(UserClaims user, long id, long userId, CancellationToken cancellationToken = default)
     {
         var billGroup = await GetBillGroupIfAccessible(user, id, false, cancellationToken);
 
-        var userBillGroup = await _userBillGroupRepository.Get(userId, billGroup.Id, true, cancellationToken);
+        var userBillGroup = await _userBillGroupRepository.GetUserBillGroup(userId, billGroup.Id, true, cancellationToken);
 
         if (userBillGroup is not null)
         {
@@ -172,10 +172,10 @@ public class BillGroupService : IBillGroupService
         }
 
         billGroup.UserBillGroups.Add(new UserBillGroup(userId, user.Id));
-        await _billGroupRepository.Update(billGroup, cancellationToken);
+        await _billGroupRepository.UpdateBillGroup(billGroup, cancellationToken);
     }
 
-    public async Task Delete(UserClaims user, long id, CancellationToken cancellationToken = default)
+    public async Task DeleteBillGroup(UserClaims user, long id, CancellationToken cancellationToken = default)
     {
         BillGroup billGroup;
         try
@@ -198,12 +198,12 @@ public class BillGroupService : IBillGroupService
         billGroup.DeletedBy = user.Id;
         billGroup.DeletedDate = DateTime.UtcNow;
 
-        await _billGroupRepository.Update(billGroup, cancellationToken);
+        await _billGroupRepository.UpdateBillGroup(billGroup, cancellationToken);
     }
 
     private async Task<BillGroup> GetBillGroupIfAccessible(UserClaims user, long billGroupId, bool withNoTracking = true, CancellationToken cancellationToken = default)
     {
-        var billGroup = (await _billGroupRepository.Get(cancellationToken, withNoTracking, billGroupId)).FirstOrDefault().ThrowIfNull(billGroupId);
+        var billGroup = (await _billGroupRepository.GetBillGroups(cancellationToken, withNoTracking, billGroupId)).FirstOrDefault().ThrowIfNull(billGroupId);
 
         var userBillGroupIds = (await _userBillGroupRepository.GetUserBillGroupIds(user.Id, cancellationToken)).ThrowIfNull();
 
@@ -217,10 +217,10 @@ public class BillGroupService : IBillGroupService
 
     private async Task ValidateAllUsersExist(IEnumerable<long> userIds, CancellationToken cancellationToken = default)
     {
-        await _userService.Get(userIds, cancellationToken);
+        await _userService.GetUsers(userIds, cancellationToken);
     }
 
-    private static bool UserHasAccess(UserClaims user, BillGroup? billGroup)
+    private static bool UserHasAccess(UserClaims user, BillGroup billGroup)
     {
         return billGroup.CreatedBy == user.Id ||
                billGroup.UserBillGroups.Any(x => x.UserId == user.Id);

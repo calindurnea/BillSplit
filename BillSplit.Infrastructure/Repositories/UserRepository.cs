@@ -14,7 +14,7 @@ internal sealed class UserRepository : IUserRepository
         _applicationContext = applicationContext ?? throw new ArgumentNullException(nameof(applicationContext));
     }
 
-    public async Task<User> Create(User user, CancellationToken cancellationToken = default)
+    public async Task<User> CreateUser(User user, CancellationToken cancellationToken = default)
     {
         var result = await _applicationContext.Users.AddAsync(user, cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
@@ -22,25 +22,25 @@ internal sealed class UserRepository : IUserRepository
         return result.Entity;
     }
 
-    public async Task<IEnumerable<User>> Get(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<User>> GetUsers(CancellationToken cancellationToken = default)
     {
         return await _applicationContext.Users.WithNoTracking().Where(x => !x.IsDeleted).ToListAsync(cancellationToken);
     }
 
-    public async Task<User?> Get(string email, CancellationToken cancellationToken = default)
+    public async Task<User?> GetUsers(string email, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.Users
             .WithNoTracking()
-            .FirstOrDefaultAsync(x => string.Equals(x.Email, email) && !x.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(x => string.Equals(x.Email, email, StringComparison.Ordinal) && !x.IsDeleted, cancellationToken);
     }
 
-    public async Task<User?> Get(long id, CancellationToken cancellationToken = default)
+    public async Task<User?> GetUsers(long id, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.Users
             .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
     }
 
-    public async Task<IEnumerable<User>?> Get(IEnumerable<long> ids, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<User>?> GetUsers(IEnumerable<long> ids, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.Users
             .WithNoTracking()
@@ -48,7 +48,7 @@ internal sealed class UserRepository : IUserRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task Update(User user, CancellationToken cancellationToken = default)
+    public async Task UpdateUser(User user, CancellationToken cancellationToken = default)
     {
         _applicationContext.Users.Update(user);
         await _applicationContext.SaveChangesAsync(cancellationToken);

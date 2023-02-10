@@ -9,7 +9,7 @@ using BillSplit.Services.Extensions;
 
 namespace BillSplit.Services;
 
-internal class BillService : IBillService
+internal sealed class BillService : IBillService
 {
     private readonly IBillRepository _billRepository;
     private readonly IUserService _userService;
@@ -31,9 +31,9 @@ internal class BillService : IBillService
         _billGroupRepository = billGroupRepository ?? throw new ArgumentNullException(nameof(billGroupRepository));
     }
 
-    public async Task<BillDto> Get(UserClaims user, long id, CancellationToken cancellationToken = default)
+    public async Task<BillDto> GetBill(UserClaims user, long id, CancellationToken cancellationToken = default)
     {
-        var bill = (await _billRepository.Get(id, true, true, cancellationToken)).ThrowIfNull(id);
+        var bill = (await _billRepository.GetBill(id, true, true, cancellationToken)).ThrowIfNull(id);
 
         var userBillGroups = (await _userBillGroupRepository.GetUserBillGroupIds(user.Id, cancellationToken)).ThrowIfNull();
 
@@ -42,9 +42,9 @@ internal class BillService : IBillService
             throw new NotFoundException(nameof(Bill));
         }
 
-        var createdByUser = await _userService.Get(bill.CreatedBy, cancellationToken);
-        var paidByUser = await _userService.Get(bill.PaidBy, cancellationToken);
-        var billAllocationUsers = await _userService.Get(bill.BillAllocations.Select(x => x.UserId), cancellationToken);
+        var createdByUser = await _userService.GetUsers(bill.CreatedBy, cancellationToken);
+        var paidByUser = await _userService.GetUsers(bill.PaidBy, cancellationToken);
+        var billAllocationUsers = await _userService.GetUsers(bill.BillAllocations.Select(x => x.UserId), cancellationToken);
 
         return new BillDto(
             bill.Id,
@@ -63,9 +63,9 @@ internal class BillService : IBillService
                     x.PaidAmount)));
     }
 
-    public async Task<long> Create(UserClaims user, CreateBillDto createBill, CancellationToken cancellationToken = default)
+    public async Task<long> CreateBill(UserClaims user, CreateBillDto createBill, CancellationToken cancellationToken = default)
     {
-        (await _billGroupRepository.Get(cancellationToken, true, createBill.BillGroupId)).ThrowIfNull(createBill.BillGroupId);
+        (await _billGroupRepository.GetBillGroups(cancellationToken, true, createBill.BillGroupId)).ThrowIfNull(createBill.BillGroupId);
 
         var billGroupUserIds = await _userBillGroupRepository.GetBillGroupUserIds(createBill.BillGroupId, cancellationToken);
         var userIdsToValidate = new List<long> { user.Id, createBill.PaidById };
@@ -78,10 +78,10 @@ internal class BillService : IBillService
 
         if (createBill.Amount != createBill.BillAllocations.Sum(x => x.Amount))
         {
-            throw new InvalidBillAllocationSetup("The bill amount must equal to the sum of the allocations");
+            throw new InvalidBillAllocationSetupException("The bill amount must equal to the sum of the allocations");
         }
 
-        var bill = await _billRepository.Create(
+        var bill = await _billRepository.CreateBill(
             new Bill(
                 createBill.Amount,
                 createBill.Comment,
@@ -96,7 +96,7 @@ internal class BillService : IBillService
 
     public async Task Delete(UserClaims user, long id, CancellationToken cancellationToken = default)
     {
-        var bill = await _billRepository.Get(id, true, false, cancellationToken);
+        var bill = await _billRepository.GetBill(id, true, false, cancellationToken);
 
         if (bill is null)
         {
@@ -121,6 +121,6 @@ internal class BillService : IBillService
             billAllocation.DeletedDate = DateTime.UtcNow;
         }
 
-        await _billRepository.Update(bill, cancellationToken);
+        await _billRepository.UpdateBill(bill, cancellationToken);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BillSplit.Contracts.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace BillSplit.Services;
 
-internal class JwtTokenGenerator : IJwtTokenGenerator
+internal sealed class JwtTokenGenerator : IJwtTokenGenerator
 {
     private readonly JwtSettings _jwtSettings;
 
@@ -16,13 +17,13 @@ internal class JwtTokenGenerator : IJwtTokenGenerator
         _jwtSettings = jwtSettings ?? throw new ArgumentNullException(nameof(jwtSettings));
     }
 
-    public string Generate(long id)
+    public string GenerateToken(long id)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var jwtSecretKey = Encoding.ASCII.GetBytes(_jwtSettings.Key);
         var claims = new ClaimsIdentity(new Claim[]
         {
-            new(ClaimTypes.Name, id.ToString()),
+            new(ClaimTypes.Name, id.ToString(CultureInfo.InvariantCulture)),
         });
 
         var tokenDescriptor = new SecurityTokenDescriptor

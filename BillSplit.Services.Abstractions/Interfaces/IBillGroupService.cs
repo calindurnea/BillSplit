@@ -5,11 +5,11 @@ namespace BillSplit.Services.Abstractions.Interfaces;
 
 public interface IBillGroupService
 {
-    Task<BillGroupDto> Get(UserClaims user, long id, CancellationToken cancellationToken = default);
-    Task<IEnumerable<UserBillGroupDto>> Get(UserClaims user, CancellationToken cancellationToken = default);
-    Task<long> Create(UserClaims user, CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default);
-    Task UpdateName(UserClaims user, long id, UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken = default);
-    Task RemoveUser(UserClaims user, long id, long userId, CancellationToken cancellationToken = default);
-    Task AddUser(UserClaims user, long id, long userId, CancellationToken cancellationToken = default);
-    Task Delete(UserClaims user, long id, CancellationToken cancellationToken = default);
+    Task<BillGroupDto> GetBillGroups(UserClaims user, long id, CancellationToken cancellationToken = default);
+    Task<IEnumerable<UserBillGroupDto>> GetBillGroups(UserClaims user, CancellationToken cancellationToken = default);
+    Task<long> CreateBillGroup(UserClaims user, CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default);
+    Task UpdateBillGroupName(UserClaims user, long id, UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken = default);
+    Task RemoveBillGroupUser(UserClaims user, long id, long userId, CancellationToken cancellationToken = default);
+    Task AddBillGroupUser(UserClaims user, long id, long userId, CancellationToken cancellationToken = default);
+    Task DeleteBillGroup(UserClaims user, long id, CancellationToken cancellationToken = default);
 }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BillSplit.Persistence.Repositories;
 
-internal class UserBillGroupRepository : IUserBillGroupRepository
+internal sealed class UserBillGroupRepository : IUserBillGroupRepository
 {
     private readonly IApplicationDbContext _applicationContext;
 
@@ -22,7 +22,7 @@ internal class UserBillGroupRepository : IUserBillGroupRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<UserBillGroup?> Get(long userId, long billGroupId, bool withNoTracking = true, CancellationToken cancellationToken = default)
+    public async Task<UserBillGroup?> GetUserBillGroup(long userId, long billGroupId, bool withNoTracking = true, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.UserBillGroups.WithNoTracking(withNoTracking)
             .FirstOrDefaultAsync(x =>
@@ -39,7 +39,7 @@ internal class UserBillGroupRepository : IUserBillGroupRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task Update(UserBillGroup userBillGroup, CancellationToken cancellationToken = default)
+    public async Task UpdateUserBillGroup(UserBillGroup userBillGroup, CancellationToken cancellationToken = default)
     {
         _applicationContext.UserBillGroups.Update(userBillGroup);
         await _applicationContext.SaveChangesAsync(cancellationToken);

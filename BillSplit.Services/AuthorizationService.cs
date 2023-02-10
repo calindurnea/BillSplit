@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace BillSplit.Services;
 
-internal class AuthorizationService : IAuthorizationService
+internal sealed class AuthorizationService : IAuthorizationService
 {
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IUserRepository _userRepository;
@@ -23,12 +23,12 @@ internal class AuthorizationService : IAuthorizationService
 
     public async Task SetInitialPassword(SetInitialPasswordDto request, CancellationToken cancellationToken = default)
     {
-        if (string.Equals(request.Password, request.PasswordCheck))
+        if (string.Equals(request.Password, request.PasswordCheck, StringComparison.Ordinal))
         {
             throw new PasswordCheckException("The password did not match with the repeated password");
         }
 
-        var user = (await _userRepository.Get(request.UserId, cancellationToken)).ThrowIfNull(request.UserId);
+        var user = (await _userRepository.GetUsers(request.UserId, cancellationToken)).ThrowIfNull(request.UserId);
 
         if (!string.IsNullOrWhiteSpace(user.Password))
         {
@@ -40,14 +40,14 @@ internal class AuthorizationService : IAuthorizationService
 
     public async Task UpdatePassword(UserClaims user, UpdatePasswordDto request, CancellationToken cancellationToken = default)
     {
-        if (!string.Equals(request.NewPassword, request.NewPasswordCheck))
+        if (!string.Equals(request.NewPassword, request.NewPasswordCheck, StringComparison.Ordinal))
         {
             throw new PasswordCheckException("The new password did not match with the repeated new password");
         }
 
-        var existingUser = (await _userRepository.Get(user.Id, cancellationToken)).ThrowIfNull(user.Id);
+        var existingUser = (await _userRepository.GetUsers(user.Id, cancellationToken)).ThrowIfNull(user.Id);
 
-        var passwordCheck = VerifyPassword(existingUser, existingUser.Password, request.Password);
+        var passwordCheck = VerifyPassword(existingUser, existingUser.Password!, request.Password);
 
         if (passwordCheck == PasswordVerificationResult.Failed)
         {
@@ -59,24 +59,24 @@ internal class AuthorizationService : IAuthorizationService
 
     private async Task UpdatePassword(long userId, string password, CancellationToken cancellationToken = default)
     {
-        var user = (await _userRepository.Get(userId, cancellationToken)).ThrowIfNull(userId);
+        var user = (await _userRepository.GetUsers(userId, cancellationToken)).ThrowIfNull(userId);
 
         var passwordHasher = new PasswordHasher<User>();
         var hash = passwordHasher.HashPassword(user, password);
 
         // should I? or can it be maliciously used to find passwords?
-        if (string.Equals(user.Password, hash))
+        if (string.Equals(user.Password, hash, StringComparison.Ordinal))
         {
             throw new PasswordCheckException("The new password must differ from the current password");
         }
 
         user.Password = hash;
-        await _userRepository.Update(user, cancellationToken);
+        await _userRepository.UpdateUser(user, cancellationToken);
     }
 
     public async Task<LoginResponseDto> Login(LoginRequestDto loginRequest, CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.Get(loginRequest.Email, cancellationToken);
+        var user = await _userRepository.GetUsers(loginRequest.Email, cancellationToken);
 
         if (user is null)
         {
@@ -95,7 +95,7 @@ internal class AuthorizationService : IAuthorizationService
             throw new AuthenticationException("Wrong username or password");
         }
 
-        var token = _jwtTokenGenerator.Generate(user.Id);
+        var token = _jwtTokenGenerator.GenerateToken(user.Id);
 
         return new LoginResponseDto(token);
     }

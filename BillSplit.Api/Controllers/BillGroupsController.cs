@@ -23,7 +23,7 @@ public class BillGroupsController : ControllerBase
     public async Task<IActionResult> GetAllBillGroups(CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        var billGroups = await _billGroupsService.Get(user, cancellationToken);
+        var billGroups = await _billGroupsService.GetBillGroups(user, cancellationToken);
         return Ok(billGroups);
     }
 
@@ -34,7 +34,7 @@ public class BillGroupsController : ControllerBase
     public async Task<IActionResult> GetBillGroupById([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        var billGroup = await _billGroupsService.Get(user, id, cancellationToken);
+        var billGroup = await _billGroupsService.GetBillGroups(user, id, cancellationToken);
         return Ok(billGroup);
     }
 
@@ -45,7 +45,7 @@ public class BillGroupsController : ControllerBase
     public async Task<IActionResult> AddBillGroupUser([FromRoute, BindRequired] long id, [BindRequired, FromQuery] long userId, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        await _billGroupsService.AddUser(user, id, userId, cancellationToken);
+        await _billGroupsService.AddBillGroupUser(user, id, userId, cancellationToken);
         return NoContent();
     }
 
@@ -56,7 +56,7 @@ public class BillGroupsController : ControllerBase
     public async Task<IActionResult> RemoveBillGroupUser([FromRoute, BindRequired] long id, [BindRequired, FromQuery] long userId, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        await _billGroupsService.RemoveUser(user, id, userId, cancellationToken);
+        await _billGroupsService.RemoveBillGroupUser(user, id, userId, cancellationToken);
         return NoContent();
     }
 
@@ -67,7 +67,7 @@ public class BillGroupsController : ControllerBase
     public async Task<IActionResult> UpdateBillGroupName([FromRoute, BindRequired] long id, [BindRequired, FromBody] UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        await _billGroupsService.UpdateName(user, id, updateBillGroupName, cancellationToken);
+        await _billGroupsService.UpdateBillGroupName(user, id, updateBillGroupName, cancellationToken);
         return NoContent();
     }
 
@@ -78,7 +78,7 @@ public class BillGroupsController : ControllerBase
     public async Task<IActionResult> CreateBillGroup([BindRequired, FromBody] CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        var id = await _billGroupsService.Create(user, createBillGroup, cancellationToken);
+        var id = await _billGroupsService.CreateBillGroup(user, createBillGroup, cancellationToken);
         return CreatedAtAction(nameof(GetBillGroupById), new { id }, new { id });
     }
 
@@ -89,7 +89,7 @@ public class BillGroupsController : ControllerBase
     public async Task<IActionResult> DeleteBillGroup([BindRequired, FromRoute] long id, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        await _billGroupsService.Delete(user, id, cancellationToken);
+        await _billGroupsService.DeleteBillGroup(user, id, cancellationToken);
         return NoContent();
     }
 }

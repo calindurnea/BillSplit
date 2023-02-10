@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using BillSplit.Services.Extensions;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BillSplit.Api.Extensions;
@@ -45,7 +46,7 @@ public static class StartupExtensions
 
     internal static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>();
+        var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>().ThrowIfNull();
 
         services.AddAuthentication(options =>
         {

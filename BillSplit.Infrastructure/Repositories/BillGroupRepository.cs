@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BillSplit.Persistence.Repositories;
 
-internal class BillGroupRepository : IBillGroupRepository
+internal sealed class BillGroupRepository : IBillGroupRepository
 {
     private readonly IApplicationDbContext _applicationContext;
 
@@ -14,7 +14,7 @@ internal class BillGroupRepository : IBillGroupRepository
         _applicationContext = applicationContext ?? throw new ArgumentNullException(nameof(applicationContext));
     }
 
-    public async Task<IEnumerable<BillGroup>> Get(CancellationToken cancellationToken = default, bool withNoTracking = true, params long[] ids)
+    public async Task<IEnumerable<BillGroup>> GetBillGroups(CancellationToken cancellationToken = default, bool withNoTracking = true, params long[] ids)
     {
         return await _applicationContext.BillGroups
             .WithNoTracking(withNoTracking)
@@ -22,7 +22,7 @@ internal class BillGroupRepository : IBillGroupRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<BillGroup> Create(BillGroup billGroup, CancellationToken cancellationToken = default)
+    public async Task<BillGroup> CreateBillGroup(BillGroup billGroup, CancellationToken cancellationToken = default)
     {
         var result = await _applicationContext.BillGroups.AddAsync(billGroup, cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
@@ -30,7 +30,7 @@ internal class BillGroupRepository : IBillGroupRepository
         return result.Entity;
     }
 
-    public async Task Update(BillGroup billGroup, CancellationToken cancellationToken = default)
+    public async Task UpdateBillGroup(BillGroup billGroup, CancellationToken cancellationToken = default)
     {
         _applicationContext.BillGroups.Update(billGroup);
         await _applicationContext.SaveChangesAsync(cancellationToken);

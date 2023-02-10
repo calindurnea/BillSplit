@@ -1,4 +1,6 @@
-﻿using System.Security.Claims;
+﻿using System.Globalization;
+using System.Security.Authentication;
+using System.Security.Claims;
 using System.Security.Principal;
 using BillSplit.Contracts.User;
 
@@ -10,12 +12,12 @@ internal static class UserExtensions
     {
         if (claimsPrincipal.Identity is not ClaimsIdentity identity)
         {
-            return null;
+            throw new AuthenticationException();
         }
 
         var userClaims = identity.Claims;
         var id = userClaims.First(x => x.Type == ClaimTypes.Name).Value;
 
-        return new UserClaims(long.Parse(id));
+        return new UserClaims(long.Parse(id, CultureInfo.InvariantCulture));
     }
 }
