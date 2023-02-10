@@ -6,7 +6,6 @@ using BillSplit.Domain.Models;
 using BillSplit.Persistence.Repositories.Abstractions;
 using BillSplit.Services.Abstractions.Interfaces;
 using BillSplit.Services.Extensions;
-using Microsoft.AspNetCore.Components.Forms;
 
 namespace BillSplit.Services;
 
@@ -34,7 +33,7 @@ internal class BillService : IBillService
 
     public async Task<BillDto> Get(UserClaims user, long id, CancellationToken cancellationToken = default)
     {
-        var bill = (await _billRepository.Get(id, cancellationToken)).ThrowIfNull(id);
+        var bill = (await _billRepository.Get(id, true, true, cancellationToken)).ThrowIfNull(id);
 
         var userBillGroups = (await _userBillGroupRepository.GetUserBillGroupIds(user.Id, cancellationToken)).ThrowIfNull();
 
@@ -43,11 +42,9 @@ internal class BillService : IBillService
             throw new NotFoundException(nameof(Bill));
         }
 
-        var billAllocations = (await _billAllocationRepository.GetBillAllocations(bill.Id, cancellationToken)).ToList();
-
         var createdByUser = await _userService.Get(bill.CreatedBy, cancellationToken);
         var paidByUser = await _userService.Get(bill.PaidBy, cancellationToken);
-        var billAllocationUsers = await _userService.Get(billAllocations.Select(x => x.UserId), cancellationToken);
+        var billAllocationUsers = await _userService.Get(bill.BillAllocations.Select(x => x.UserId), cancellationToken);
 
         return new BillDto(
             bill.Id,
@@ -57,7 +54,7 @@ internal class BillService : IBillService
             bill.Comment,
             createdByUser.Name,
             bill.CreatedDate,
-            billAllocations.Select(x =>
+            bill.BillAllocations.Select(x =>
                 new BillAllocationDto(
                     x.Id,
                     x.UserId,
@@ -95,5 +92,35 @@ internal class BillService : IBillService
             cancellationToken);
 
         return bill.Id;
+    }
+
+    public async Task Delete(UserClaims user, long id, CancellationToken cancellationToken = default)
+    {
+        var bill = await _billRepository.Get(id, true, false, cancellationToken);
+
+        if (bill is null)
+        {
+            return;
+        }
+        
+        var billGroupUserIds = (await _userBillGroupRepository.GetBillGroupUserIds(bill.BillGroupId, cancellationToken)).ThrowIfNull(bill.BillGroupId);
+
+        if (!billGroupUserIds.Contains(user.Id))
+        {
+            throw new ForbiddenException(id);
+        }
+
+        bill.IsDeleted = true;
+        bill.DeletedBy = user.Id;
+        bill.DeletedDate = DateTime.UtcNow;
+
+        foreach (var billAllocation in bill.BillAllocations)
+        {
+            billAllocation.IsDeleted = true;
+            billAllocation.DeletedBy = user.Id;
+            billAllocation.DeletedDate = DateTime.UtcNow;
+        }
+
+        await _billRepository.Update(bill, cancellationToken);
     }
 }

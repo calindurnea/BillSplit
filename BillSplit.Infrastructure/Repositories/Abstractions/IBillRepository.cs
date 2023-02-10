@@ -6,7 +6,7 @@ public interface IBillRepository
 {
     Task<Bill> Create(Bill bill, CancellationToken cancellationToken = default);
     Task<IEnumerable<Bill>> Get(CancellationToken cancellationToken = default);
-    Task<Bill?> Get(long id, CancellationToken cancellationToken = default);
+    Task<Bill?> Get(long id, bool? withAllocations = false, bool withNoTracking = true, CancellationToken cancellationToken = default);
     Task Update(Bill bill, CancellationToken cancellationToken = default);
     Task<IEnumerable<Bill>> GetGroupBills(long billGroupId, bool? withAllocations = false, CancellationToken cancellationToken = default);
 }
