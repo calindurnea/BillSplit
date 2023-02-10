@@ -1,4 +1,5 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BillSplit.Contracts.Authorization;
@@ -22,7 +23,7 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
         var jwtSecretKey = Encoding.ASCII.GetBytes(_jwtSettings.Key);
         var claims = new ClaimsIdentity(new Claim[]
         {
-            new(ClaimTypes.Name, id.ToString()),
+            new(ClaimTypes.Name, id.ToString(CultureInfo.InvariantCulture)),
         });
 
         var tokenDescriptor = new SecurityTokenDescriptor

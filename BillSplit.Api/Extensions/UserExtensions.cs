@@ -18,6 +18,6 @@ internal static class UserExtensions
         var userClaims = identity.Claims;
         var id = userClaims.First(x => x.Type == ClaimTypes.Name).Value;
 
-        return new UserClaims(long.Parse(id, NumberStyles.Integer));
+        return new UserClaims(long.Parse(id, CultureInfo.InvariantCulture));
     }
 }
