@@ -41,7 +41,7 @@ public class BillGroupService : IBillGroupService
             throw new UnauthorizedAccessException();
         }
 
-        var bills = (await _billRepository.GetGroupBills(billGroup.Id, cancellationToken)).ToList();
+        var bills = (await _billRepository.GetGroupBills(billGroup.Id, false, cancellationToken)).ToList();
 
         var billsCreatedBy = _userService.Get(bills.Select(x => x.CreatedBy), cancellationToken);
         var billsPaidBy = _userService.Get(bills.Select(x => x.PaidBy), cancellationToken);
@@ -60,7 +60,7 @@ public class BillGroupService : IBillGroupService
             bills.Select(bill => new BillDto(
                 bill.Id,
                 bill.PaidBy,
-                billsPaidBy.Result.First(x => x.Id == bill.CreatedBy).Name,
+                billsPaidBy.Result.First(x => x.Id == bill.PaidBy).Name,
                 bill.Amount,
                 bill.Comment,
                 billsCreatedBy.Result.First(x => x.Id == bill.CreatedBy).Name,
@@ -76,23 +76,39 @@ public class BillGroupService : IBillGroupService
 
     public async Task<IEnumerable<UserBillGroupDto>> Get(UserClaims user, CancellationToken cancellationToken = default)
     {
-        var userBillGroupIds = (await _userBillGroupRepository.GetUserBillGroupIds(user.Id, cancellationToken)).ThrowIfNull(user.Id);
-        var billGroups = (await _billGroupRepository.Get(cancellationToken, true, userBillGroupIds.ToArray())).ThrowIfNull(userBillGroupIds.ToArray());
+        var userBillGroupIds = (await _userBillGroupRepository.GetUserBillGroupIds(user.Id, cancellationToken)).ThrowIfNull(user.Id).ToList();
+        var billGroups = (await _billGroupRepository.Get(cancellationToken, true, userBillGroupIds.ToArray()))
+            .ThrowIfNull(userBillGroupIds.ToArray())
+            .ToList();
+
+        var bills = new List<Bill>();
+        foreach (var billGroup in billGroups)
+        {
+            bills.AddRange(await _billRepository.GetGroupBills(billGroup.Id, true, cancellationToken));
+        }
 
         return billGroups.Select(billGroup =>
-            new UserBillGroupDto(
+        {
+            var billGroupBills = bills.Where(bill => bill.BillGroupId == billGroup.Id).ToList();
+            return new UserBillGroupDto(
                 billGroup.Id,
                 billGroup.Name,
-                TotalAmount: billGroup.Bills.Sum(bill => bill.Amount),
-                CurrentUserAmount: GetUserAmount(user.Id, billGroup)));
+                TotalAmount: billGroupBills.Sum(bill => bill.Amount),
+                CurrentUserAmount: GetUserAmount(user.Id, billGroupBills.SelectMany(bill => bill.BillAllocations).ToList()));
+        });
     }
 
-    private static decimal GetUserAmount(long userId, BillGroup billGroup)
+    private static decimal GetUserAmount(long userId, IReadOnlyCollection<BillAllocation> billAllocations)
     {
-        return billGroup.Bills
-            .SelectMany(x => x.BillAllocations)
-            .Where(x => x.UserId == userId)
+        var userOwedAllocations = billAllocations
+            .Where(billAllocation => billAllocation.Bill.PaidBy == userId && billAllocation.UserId != userId)
+            .Sum(x => x.Amount);
+
+        var userOwingAllocations = billAllocations
+            .Where(billAllocation => billAllocation.Bill.PaidBy != userId && billAllocation.UserId == userId)
             .Sum(x => x.Amount - x.PaidAmount);
+
+        return userOwedAllocations - userOwingAllocations;
     }
 
     public async Task<long> Create(UserClaims user, CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default)

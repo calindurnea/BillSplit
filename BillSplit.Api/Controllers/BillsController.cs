@@ -27,4 +27,15 @@ public class BillsController : ControllerBase
         var billGroup = await _billService.Get(user, id, cancellationToken);
         return Ok(billGroup);
     }
+    
+    [HttpPost(Name = nameof(CreateBill))]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateBill([BindRequired, FromBody] CreateBillDto createBill, CancellationToken cancellationToken = default)
+    {
+        var user = HttpContext.User.GetCurrentUser();
+        var id = await _billService.Create(user, createBill, cancellationToken);
+        return CreatedAtAction(nameof(Get), new { id }, new { id });
+    }
 }

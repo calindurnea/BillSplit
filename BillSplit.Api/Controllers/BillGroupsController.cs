@@ -82,14 +82,14 @@ public class BillGroupsController : ControllerBase
         return CreatedAtAction(nameof(GetBillGroupById), new { id }, new { id });
     }
 
-    [HttpDelete("{billGroupId:long}")]
+    [HttpDelete("{id:long}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> DeleteBillGroup([BindRequired, FromRoute] long billGroupId, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> DeleteBillGroup([BindRequired, FromRoute] long id, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        await _billGroupsService.Delete(user, billGroupId, cancellationToken);
+        await _billGroupsService.Delete(user, id, cancellationToken);
         return NoContent();
     }
 }

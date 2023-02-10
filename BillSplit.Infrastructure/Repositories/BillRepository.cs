@@ -37,12 +37,17 @@ internal sealed class BillRepository : IBillRepository
         _applicationContext.Bills.Update(bill);
         await _applicationContext.SaveChangesAsync(cancellationToken);
     }
-
-    public async Task<IEnumerable<Bill>> GetGroupBills(long billGroupId, CancellationToken cancellationToken = default)
+    
+    public async Task<IEnumerable<Bill>> GetGroupBills(long billGroupId, bool? withAllocations = false, CancellationToken cancellationToken = default)
     {
-        return await _applicationContext.Bills
-            .WithNoTracking()
-            .Where(x => x.BillGroupId == billGroupId && !x.IsDeleted)
-            .ToListAsync(cancellationToken);
+        var billQuery = _applicationContext.Bills.WithNoTracking()
+            .Where(x => x.BillGroupId == billGroupId && !x.IsDeleted);
+
+        if (withAllocations == true)
+        {
+            billQuery = billQuery.Include(x => x.BillAllocations);
+        }
+
+        return await billQuery.ToListAsync(cancellationToken);
     }
 }

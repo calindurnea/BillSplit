@@ -9,7 +9,7 @@ public sealed record UpsertUserDto
         PhoneNumber = phoneNumber;
     }
 
-    public string Email { get; init; }
-    public string Name { get; init; }
-    public long PhoneNumber { get; init; }
+    public string Email { get; }
+    public string Name { get; }
+    public long PhoneNumber { get; }
 }
