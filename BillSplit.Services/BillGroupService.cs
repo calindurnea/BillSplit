@@ -220,7 +220,7 @@ public class BillGroupService : IBillGroupService
         await _userService.GetUsers(userIds, cancellationToken);
     }
 
-    private static bool UserHasAccess(UserClaims user, BillGroup? billGroup)
+    private static bool UserHasAccess(UserClaims user, BillGroup billGroup)
     {
         return billGroup.CreatedBy == user.Id ||
                billGroup.UserBillGroups.Any(x => x.UserId == user.Id);

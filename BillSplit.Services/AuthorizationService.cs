@@ -47,7 +47,7 @@ internal class AuthorizationService : IAuthorizationService
 
         var existingUser = (await _userRepository.Get(user.Id, cancellationToken)).ThrowIfNull(user.Id);
 
-        var passwordCheck = VerifyPassword(existingUser, existingUser.Password, request.Password);
+        var passwordCheck = VerifyPassword(existingUser, existingUser.Password!, request.Password);
 
         if (passwordCheck == PasswordVerificationResult.Failed)
         {
