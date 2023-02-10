@@ -28,16 +28,16 @@ internal sealed class UserService : IUserService
             throw new UnavailablePhoneNumberException();
         }
 
-        var result = await _userRepository.Create(new User(request.Email, request.Name, request.PhoneNumber), cancellationToken);
+        var result = await _userRepository.CreateUser(new User(request.Email, request.Name, request.PhoneNumber), cancellationToken);
 
         return result.Id;
     }
 
     public async Task UpdateUser(long id, UpsertUserDto request, CancellationToken cancellationToken = default)
     {
-        var user = (await _userRepository.Get(id, cancellationToken)).ThrowIfNull(id);
+        var user = (await _userRepository.GetUsers(id, cancellationToken)).ThrowIfNull(id);
 
-        if (!string.Equals(user.Email.ToLowerInvariant(), request.Email) &&
+        if (!string.Equals(user.Email.ToLowerInvariant(), request.Email, StringComparison.Ordinal) &&
             await _userRepository.IsEmailInUse(request.Email, cancellationToken))
         {
             throw new UnavailableEmailException();
@@ -54,18 +54,18 @@ internal sealed class UserService : IUserService
         user.PhoneNumber = request.PhoneNumber;
         user.Name = request.Name;
 
-        await _userRepository.Update(user, cancellationToken);
+        await _userRepository.UpdateUser(user, cancellationToken);
     }
 
     public async Task<IEnumerable<UserDto>> GetUsers(CancellationToken cancellationToken = default)
     {
-        var users = await _userRepository.Get(cancellationToken);
+        var users = await _userRepository.GetUsers(cancellationToken);
         return users.Select(MapToDto);
     }
 
     public async Task<UserDto> GetUsers(long id, CancellationToken cancellationToken = default)
     {
-        var user = (await _userRepository.Get(id, cancellationToken)).ThrowIfNull(id);
+        var user = (await _userRepository.GetUsers(id, cancellationToken)).ThrowIfNull(id);
         return MapToDto(user);
     }
 
@@ -73,7 +73,7 @@ internal sealed class UserService : IUserService
     {
         ids = ids.ToList();
 
-        var users = (await _userRepository.Get(ids, cancellationToken))
+        var users = (await _userRepository.GetUsers(ids, cancellationToken))
             .ThrowIfNull(ids.ToArray())
             .ToList();
 

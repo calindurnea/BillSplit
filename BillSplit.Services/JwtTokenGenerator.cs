@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace BillSplit.Services;
 
-internal class JwtTokenGenerator : IJwtTokenGenerator
+internal sealed class JwtTokenGenerator : IJwtTokenGenerator
 {
     private readonly JwtSettings _jwtSettings;
 
