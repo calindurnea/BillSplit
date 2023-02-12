@@ -5,7 +5,7 @@ using FluentValidation;
 
 namespace BillSplit.Domain.Validators.Bill;
 
-public class CreateBillDtoValidator : AbstractValidator<CreateBillDto>
+public class CreateBillDtoValidator : AbstractValidator<UpsertBillDto>
 {
     public CreateBillDtoValidator()
     {

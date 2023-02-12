@@ -47,7 +47,8 @@ internal sealed class BillRepository : IBillRepository
 
         if (withAllocations == true)
         {
-            billQuery = billQuery.Include(x => x.BillAllocations);
+            billQuery = billQuery.Include(x => x.BillAllocations)
+                .Where(x => !x.IsDeleted);
         }
 
         return await billQuery.ToListAsync(cancellationToken);

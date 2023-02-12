@@ -53,6 +53,7 @@ internal sealed class UserService : IUserService
 
         user.PhoneNumber = request.PhoneNumber;
         user.Name = request.Name;
+        user.UpdatedBy = id;
 
         await _userRepository.UpdateUser(user, cancellationToken);
     }
@@ -71,7 +72,7 @@ internal sealed class UserService : IUserService
 
     public async Task<IEnumerable<UserDto>> GetUsers(IEnumerable<long> ids, CancellationToken cancellationToken = default)
     {
-        ids = ids.ToList();
+        ids = ids.Distinct().ToList();
 
         var users = (await _userRepository.GetUsers(ids, cancellationToken))
             .ThrowIfNull(ids.ToArray())

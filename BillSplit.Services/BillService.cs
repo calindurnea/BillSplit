@@ -63,33 +63,61 @@ internal sealed class BillService : IBillService
                     x.PaidAmount)));
     }
 
-    public async Task<long> CreateBill(UserClaims user, CreateBillDto createBill, CancellationToken cancellationToken = default)
+    public async Task<long> UpsertBill(UserClaims user, UpsertBillDto upsertBill, CancellationToken cancellationToken = default)
     {
-        (await _billGroupRepository.GetBillGroups(cancellationToken, true, createBill.BillGroupId)).ThrowIfNull(createBill.BillGroupId);
+        (await _billGroupRepository.GetBillGroups(cancellationToken, true, upsertBill.BillGroupId)).ThrowIfNull(upsertBill.BillGroupId);
 
-        var billGroupUserIds = await _userBillGroupRepository.GetBillGroupUserIds(createBill.BillGroupId, cancellationToken);
-        var userIdsToValidate = new List<long> { user.Id, createBill.PaidById };
-        userIdsToValidate.AddRange(createBill.BillAllocations.Select(x => x.UserId));
+        var billGroupUserIds = await _userBillGroupRepository.GetBillGroupUserIds(upsertBill.BillGroupId, cancellationToken);
+        var userIdsToValidate = new List<long> { user.Id, upsertBill.PaidById };
+        userIdsToValidate.AddRange(upsertBill.BillAllocations.Select(x => x.UserId));
 
         if (userIdsToValidate.Any(x => !billGroupUserIds.Contains(x)))
         {
             throw new NotFoundException("Not all users are part of the group");
         }
 
-        if (createBill.Amount != createBill.BillAllocations.Sum(x => x.Amount))
+        if (upsertBill.Amount != upsertBill.BillAllocations.Sum(x => x.Amount))
         {
             throw new InvalidBillAllocationSetupException("The bill amount must equal to the sum of the allocations");
         }
 
-        var bill = await _billRepository.CreateBill(
-            new Bill(
-                createBill.Amount,
-                createBill.Comment,
-                user.Id,
-                createBill.BillGroupId,
-                createBill.PaidById,
-                createBill.BillAllocations.Select(x => new BillAllocation(x.UserId, x.Amount, user.Id)).ToList()),
-            cancellationToken);
+        if (upsertBill.Id is not null)
+        {
+            return await UpdateBill(user, upsertBill.Id.Value, upsertBill, cancellationToken);
+        }
+
+        var bill = await _billRepository.CreateBill(new Bill(
+            upsertBill.Amount,
+            upsertBill.Comment,
+            user.Id,
+            upsertBill.BillGroupId,
+            upsertBill.PaidById,
+            upsertBill.BillAllocations.Select(x => 
+                new BillAllocation(x.UserId, x.Amount, user.Id)).ToList()), cancellationToken);
+        
+        return bill.Id;
+    }
+
+    private async Task<long> UpdateBill(UserClaims user, long billId, UpsertBillDto upsertBill, CancellationToken cancellationToken)
+    {
+        var bill = (await _billRepository.GetBill(billId, false, false, cancellationToken)).ThrowIfNull(billId);
+
+        bill.Amount = upsertBill.Amount;
+        bill.Comment = upsertBill.Comment;
+        bill.PaidBy = upsertBill.PaidById;
+        bill.UpdatedBy = user.Id;
+
+        foreach (var billAllocation in bill.BillAllocations)
+        {
+            billAllocation.IsDeleted = true;
+            billAllocation.DeletedBy = user.Id;
+            billAllocation.DeletedDate = DateTime.UtcNow;
+        }
+
+        foreach (var billAllocation in upsertBill.BillAllocations)
+        {
+            bill.BillAllocations.Add(new BillAllocation(billAllocation.UserId, billAllocation.Amount, user.Id));
+        }
 
         return bill.Id;
     }
@@ -102,7 +130,7 @@ internal sealed class BillService : IBillService
         {
             return;
         }
-        
+
         var billGroupUserIds = (await _userBillGroupRepository.GetBillGroupUserIds(bill.BillGroupId, cancellationToken)).ThrowIfNull(bill.BillGroupId);
 
         if (!billGroupUserIds.Contains(user.Id))
