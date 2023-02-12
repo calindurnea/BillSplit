@@ -14,14 +14,6 @@ internal sealed class BillAllocationRepository : IBillAllocationRepository
         _applicationContext = applicationContext ?? throw new ArgumentNullException(nameof(applicationContext));
     }
 
-    public async Task<IEnumerable<BillAllocation>> GetBillsAllocations(IEnumerable<long> billIds, CancellationToken cancellationToken = default)
-    {
-        return await _applicationContext.BillAllocations
-            .WithNoTracking()
-            .Where(x => billIds.Contains(x.BillId) && !x.IsDeleted)
-            .ToListAsync(cancellationToken);
-    }
-
     public async Task<IEnumerable<BillAllocation>> GetUserBillGroupAllocations(long userId, long billGroupId, CancellationToken cancellationToken = default)
     {
         return await _applicationContext.BillAllocations
