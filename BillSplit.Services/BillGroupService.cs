@@ -41,18 +41,19 @@ internal sealed class BillGroupService : IBillGroupService
             throw new UnauthorizedAccessException();
         }
 
-        var bills = (await _billRepository.GetGroupBills(billGroup.Id, false, cancellationToken)).ToList();
+        var bills = (await _billRepository.GetGroupBills(billGroup.Id, true, cancellationToken)).ToList();
 
         var billsCreatedBy = _userService.GetUsers(bills.Select(x => x.CreatedBy), cancellationToken);
         var billsPaidBy = _userService.GetUsers(bills.Select(x => x.PaidBy), cancellationToken);
-        var billsAllocations = _billAllocationRepository.GetBillsAllocations(bills.Select(x => x.Id), cancellationToken);
 
         var tasks = new List<Task>();
-        tasks.AddRange(new Task[] { billsCreatedBy, billsPaidBy, billsAllocations });
+        tasks.AddRange(new Task[] { billsCreatedBy, billsPaidBy });
 
         await Task.WhenAll(tasks);
 
-        var billsAllocationsUsers = await _userService.GetUsers(billsAllocations.Result.Select(x => x.UserId), cancellationToken);
+        var billsAllocationsUsers = await _userService.GetUsers(bills
+            .SelectMany(x=>x.BillAllocations)
+            .Select(x => x.UserId), cancellationToken);
 
         return new BillGroupDto(
             billGroup.Id,
@@ -65,7 +66,7 @@ internal sealed class BillGroupService : IBillGroupService
                 bill.Comment,
                 billsCreatedBy.Result.First(x => x.Id == bill.CreatedBy).Name,
                 bill.CreatedDate,
-                billsAllocations.Result.Where(allocation => allocation.BillId == bill.Id)
+                bill.BillAllocations.Where(allocation => allocation.BillId == bill.Id)
                     .Select(allocation => new BillAllocationDto(
                         allocation.Id,
                         allocation.UserId,
@@ -133,7 +134,8 @@ internal sealed class BillGroupService : IBillGroupService
         var billGroup = await GetBillGroupIfAccessible(user, id, false, cancellationToken);
 
         billGroup.Name = updateBillGroupName.Name;
-
+        billGroup.UpdatedBy = user.Id;
+        
         await _billGroupRepository.UpdateBillGroup(billGroup, cancellationToken);
     }
 
@@ -152,11 +154,13 @@ internal sealed class BillGroupService : IBillGroupService
 
         if (userBillGroupAllocations.Any(x => x.Amount > x.PaidAmount))
         {
-            throw new UnsettledBillAllocationsException();
+            throw new UnsettledBillAllocationsException("This user cannot be removed because of unsettled bill allocations");
         }
 
         userBillGroup.IsDeleted = true;
         userBillGroup.DeletedBy = user.Id;
+        userBillGroup.DeletedDate = DateTime.UtcNow;
+        
         await _userBillGroupRepository.UpdateUserBillGroup(userBillGroup, cancellationToken);
     }
 
@@ -172,6 +176,7 @@ internal sealed class BillGroupService : IBillGroupService
         }
 
         billGroup.UserBillGroups.Add(new UserBillGroup(userId, user.Id));
+
         await _billGroupRepository.UpdateBillGroup(billGroup, cancellationToken);
     }
 
@@ -191,7 +196,7 @@ internal sealed class BillGroupService : IBillGroupService
 
         if (billGroupAllocations.Any(x => x.Amount > x.PaidAmount))
         {
-            throw new UnsettledBillAllocationsException();
+            throw new UnsettledBillAllocationsException("This group cannot be deleted because of unsettled bill allocations");
         }
 
         billGroup.IsDeleted = true;

@@ -31,7 +31,7 @@ internal sealed class UserRepository : IUserRepository
     {
         return await _applicationContext.Users
             .WithNoTracking()
-            .FirstOrDefaultAsync(x => string.Equals(x.Email, email, StringComparison.Ordinal) && !x.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(x => string.Equals(x.Email, email) && !x.IsDeleted, cancellationToken);
     }
 
     public async Task<User?> GetUsers(long id, CancellationToken cancellationToken = default)

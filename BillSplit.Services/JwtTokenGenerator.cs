@@ -32,7 +32,7 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
             Audience = _jwtSettings.Audience,
             Subject = claims,
             IssuedAt = DateTime.UtcNow,
-            Expires = DateTime.UtcNow.AddMinutes(500),
+            Expires = DateTime.UtcNow.AddDays(500),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(jwtSecretKey), SecurityAlgorithms.HmacSha256)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);

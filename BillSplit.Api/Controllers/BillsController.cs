@@ -28,17 +28,17 @@ public class BillsController : ControllerBase
         return Ok(billGroup);
     }
 
-    [HttpPost(Name = nameof(CreateBill))]
+    [HttpPut(Name = nameof(UpsertBill))]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> CreateBill([BindRequired, FromBody] CreateBillDto createBill, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> UpsertBill([BindRequired, FromBody] UpsertBillDto upsertBill, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        var id = await _billService.CreateBill(user, createBill, cancellationToken);
+        var id = await _billService.UpsertBill(user, upsertBill, cancellationToken);
         return CreatedAtAction(nameof(GetBills), new { id }, new { id });
     }
-    
+
     [HttpDelete("{id:long}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
