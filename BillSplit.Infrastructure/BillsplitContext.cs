@@ -24,9 +24,6 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
 
     public virtual DbSet<UserBillGroup> UserBillGroups { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql("Name=ConnectionStrings:ApplicationContext");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Bill>(entity =>
@@ -61,11 +58,7 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
 
         modelBuilder.Entity<BillAllocation>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("Id");
-
             entity.ToTable("BillAllocation", "billsplit");
-
-            entity.Property(e => e.Id).HasDefaultValueSql("nextval('billsplit.\"BillSplit_Id_seq\"'::regclass)");
 
             entity.HasOne(d => d.Bill).WithMany(p => p.BillAllocations)
                 .HasForeignKey(d => d.BillId)
@@ -93,8 +86,6 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
 
         modelBuilder.Entity<BillGroup>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("BillGroup_pk");
-
             entity.ToTable("BillGroup", "billsplit");
 
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
@@ -134,8 +125,6 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
 
         modelBuilder.Entity<UserBillGroup>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("UserBillGroup_pk");
-
             entity.ToTable("UserBillGroup", "billsplit");
 
             entity.HasIndex(e => new { e.UserId, e.BillGroupId }, "UserBillGroup_UserId_BillGroupId_uindex").IsUnique();

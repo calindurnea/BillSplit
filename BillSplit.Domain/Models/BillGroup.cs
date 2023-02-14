@@ -1,4 +1,7 @@
-﻿namespace BillSplit.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace BillSplit.Domain.Models;
 
 public partial class BillGroup
 {
