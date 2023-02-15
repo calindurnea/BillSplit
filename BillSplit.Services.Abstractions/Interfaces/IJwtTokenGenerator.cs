@@ -1,6 +1,8 @@
-﻿namespace BillSplit.Services.Abstractions.Interfaces;
+﻿using BillSplit.Domain.Models;
+
+namespace BillSplit.Services.Abstractions.Interfaces;
 
 public interface IJwtTokenGenerator
 {
-    string GenerateToken(long id);
+    string CreateToken(User user);
 }

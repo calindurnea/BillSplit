@@ -1,5 +1,4 @@
-﻿using BillSplit.Api.Extensions;
-using BillSplit.Contracts.Authorization;
+﻿using BillSplit.Contracts.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -21,27 +20,27 @@ public class AuthorizationController : ControllerBase
     [AllowAnonymous]
     [HttpPost("password")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> SetPassword([FromBody, BindRequired] SetInitialPasswordDto setInitialPassword, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> SetPassword([FromBody, BindRequired] SetInitialPasswordDto setInitialPassword)
     {
-        await _authorizationService.SetInitialPassword(setInitialPassword, cancellationToken);
+        await _authorizationService.SetInitialPassword(setInitialPassword);
         return NoContent();
     }
 
     [HttpPut("password")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> UpdatePassword([FromBody, BindRequired] UpdatePasswordDto updatePassword, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> UpdatePassword([FromBody, BindRequired] UpdatePasswordDto updatePassword)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        await _authorizationService.UpdatePassword(user, updatePassword, cancellationToken);
+        var user = HttpContext.User;
+        await _authorizationService.UpdatePassword(user, updatePassword);
         return NoContent();
     }
 
     [AllowAnonymous]
     [HttpPost("login", Name = nameof(Login))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponseDto))]
-    public async Task<IActionResult> Login([BindRequired] LoginRequestDto loginRequest, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Login([BindRequired] LoginRequestDto loginRequest)
     {
-        var response = await _authorizationService.Login(loginRequest, cancellationToken);
+        var response = await _authorizationService.Login(loginRequest);
         return Ok(response);
     }
 

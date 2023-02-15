@@ -2,7 +2,7 @@
 
 public sealed record UpsertUserDto
 {
-    public UpsertUserDto(string email, string name, long phoneNumber)
+    public UpsertUserDto(string email, string name, string phoneNumber)
     {
         Email = email.ToLowerInvariant();
         Name = name;
@@ -11,5 +11,5 @@ public sealed record UpsertUserDto
 
     public string Email { get; }
     public string Name { get; }
-    public long PhoneNumber { get; }
+    public string PhoneNumber { get; }
 }

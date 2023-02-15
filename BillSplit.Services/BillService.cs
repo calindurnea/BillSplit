@@ -42,9 +42,9 @@ internal sealed class BillService : IBillService
             throw new NotFoundException(nameof(Bill));
         }
 
-        var createdByUser = await _userService.GetUsers(bill.CreatedBy, cancellationToken);
-        var paidByUser = await _userService.GetUsers(bill.PaidBy, cancellationToken);
-        var billAllocationUsers = await _userService.GetUsers(bill.BillAllocations.Select(x => x.UserId), cancellationToken);
+        var createdByUser = await _userService.GetUser(bill.CreatedBy);
+        var paidByUser = await _userService.GetUser(bill.PaidBy);
+        var billAllocationUsers = await _userService.GetUsers(bill.BillAllocations.Select(x => x.UserId).ToHashSet(), cancellationToken);
 
         return new BillDto(
             bill.Id,

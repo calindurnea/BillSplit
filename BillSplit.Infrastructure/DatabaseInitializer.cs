@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BillSplit.Persistence
 {
-    internal class DbInitializer
+    internal sealed class DbInitializer
     {
         internal static void Initialize(BillsplitContext dbContext)
         {
@@ -13,7 +13,13 @@ namespace BillSplit.Persistence
 
             var users = new User[]
             {
-                new User("default@user.com", "Default User", 123456789)
+                new()
+                {
+                    Email = "default@email.com",
+                    NormalizedEmail = "default@email.com",
+                    Name = "Default name",
+                    PhoneNumber = "1"
+                }
             };
 
             foreach (var user in users)
