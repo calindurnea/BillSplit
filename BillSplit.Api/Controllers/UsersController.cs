@@ -25,7 +25,7 @@ public class UsersController : ControllerBase
     {
         var user = HttpContext.User.GetCurrentUser();
 
-        var users = await _userService.GetUsers(user.Id, cancellationToken);
+        var users = await _userService.GetUser(user.Id);
         return Ok(users);
     }
 
@@ -41,7 +41,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUserWithId([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
-        var user = await _userService.GetUsers(id, cancellationToken);
+        var user = await _userService.GetUser(id);
         return Ok(user);
     }
 
@@ -58,7 +58,7 @@ public class UsersController : ControllerBase
             return Forbid("You can only update your own data");
         }
 
-        await _userService.UpdateUser(id, upsertUser, cancellationToken);
+        await _userService.UpdateUser(id, upsertUser);
         return NoContent();
     }
 
@@ -69,7 +69,7 @@ public class UsersController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> CreateUser([FromBody, BindRequired] UpsertUserDto upsertUser, CancellationToken cancellationToken = default)
     {
-        var id = await _userService.CreateUser(upsertUser, cancellationToken);
+        var id = await _userService.CreateUser(upsertUser);
         return CreatedAtAction(nameof(GetUserWithId), new { id }, new { id });
     }
 }

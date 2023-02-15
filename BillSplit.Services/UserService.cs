@@ -1,84 +1,74 @@
-﻿using BillSplit.Contracts.User;
+﻿using System.Globalization;
+using BillSplit.Contracts.User;
 using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
-using BillSplit.Persistence.Repositories.Abstractions;
 using BillSplit.Services.Abstractions.Interfaces;
 using BillSplit.Services.Extensions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace BillSplit.Services;
 
 internal sealed class UserService : IUserService
 {
-    private readonly IUserRepository _userRepository;
+    private readonly UserManager<User> _userManager;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(UserManager<User> userManager)
     {
-        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+        _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
     }
 
-    public async Task<long> CreateUser(UpsertUserDto request, CancellationToken cancellationToken = default)
+    public async Task<long> CreateUser(UpsertUserDto request)
     {
-        if (await _userRepository.IsEmailInUse(request.Email.ToLowerInvariant(), cancellationToken))
+        var result = await _userManager.CreateAsync(new User
         {
-            throw new UnavailableEmailException();
+            Email = request.Email,
+            UserName = request.Email,
+            Name = request.Name,
+            PhoneNumber = request.PhoneNumber,
+            CreatedDate = DateTime.UtcNow
+        });
+
+        if (result.Succeeded)
+        {
+            var user = (await _userManager.FindByEmailAsync(request.Email)).ThrowIfNull();
+            return user.Id;
         }
 
-        if (await _userRepository.IsPhoneNumberInUse(request.PhoneNumber, cancellationToken))
-        {
-            throw new UnavailablePhoneNumberException();
-        }
-
-        var result = await _userRepository.CreateUser(new User(request.Email, request.Name, request.PhoneNumber), cancellationToken);
-
-        return result.Id;
+        // TODO: fix this
+        throw new Exception(string.Join(", ", result.Errors));
     }
 
-    public async Task UpdateUser(long id, UpsertUserDto request, CancellationToken cancellationToken = default)
+    public async Task UpdateUser(long id, UpsertUserDto request)
     {
-        var user = (await _userRepository.GetUsers(id, cancellationToken)).ThrowIfNull(id);
+        var user = (await _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture))).ThrowIfNull();
 
-        if (!string.Equals(user.Email.ToLowerInvariant(), request.Email, StringComparison.Ordinal) &&
-            await _userRepository.IsEmailInUse(request.Email, cancellationToken))
-        {
-            throw new UnavailableEmailException();
-        }
-
-        user.Email = request.Email;
-
-        if (user.PhoneNumber != request.PhoneNumber &&
-            await _userRepository.IsPhoneNumberInUse(request.PhoneNumber, cancellationToken))
-        {
-            throw new UnavailablePhoneNumberException();
-        }
-
-        user.PhoneNumber = request.PhoneNumber;
         user.Name = request.Name;
+        user.Email = request.Email;
+        user.PhoneNumber = request.PhoneNumber;
+        user.UpdatedDate = DateTime.UtcNow;
         user.UpdatedBy = id;
-
-        await _userRepository.UpdateUser(user, cancellationToken);
+        
+        await _userManager.UpdateAsync(user);
     }
 
     public async Task<IEnumerable<UserDto>> GetUsers(CancellationToken cancellationToken = default)
     {
-        var users = await _userRepository.GetUsers(cancellationToken);
+        var users = await _userManager.Users.ToListAsync(cancellationToken);
         return users.Select(MapToDto);
     }
 
-    public async Task<UserDto> GetUsers(long id, CancellationToken cancellationToken = default)
+    public async Task<UserDto> GetUser(long id)
     {
-        var user = (await _userRepository.GetUsers(id, cancellationToken)).ThrowIfNull(id);
+        var user = (await _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture))).ThrowIfNull(id);
         return MapToDto(user);
     }
 
-    public async Task<IEnumerable<UserDto>> GetUsers(IEnumerable<long> ids, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserDto>> GetUsers(ISet<long> ids, CancellationToken cancellationToken = default)
     {
-        ids = ids.Distinct().ToList();
+        var users = (await _userManager.Users.Where(x => ids.Contains(x.Id)).ToListAsync(cancellationToken)).ThrowIfNull();
 
-        var users = (await _userRepository.GetUsers(ids, cancellationToken))
-            .ThrowIfNull(ids.ToArray())
-            .ToList();
-
-        if (users.Count != ids.Count())
+        if (users.Count != ids.Count)
         {
             var idsNotFound = ids.Where(id => users.Select(u => u.Id).All(uid => uid != id));
             throw new NotFoundException(typeof(User), idsNotFound.ToArray());
@@ -89,6 +79,6 @@ internal sealed class UserService : IUserService
 
     private static UserDto MapToDto(User entity)
     {
-        return new UserDto(entity.Id, entity.Email, entity.Name, entity.PhoneNumber);
+        return new UserDto(entity.Id, entity.Email!, entity.Name, entity.PhoneNumber!);
     }
 }

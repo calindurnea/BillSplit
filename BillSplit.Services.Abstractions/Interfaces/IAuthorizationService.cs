@@ -1,11 +1,11 @@
-﻿using BillSplit.Contracts.Authorization;
-using BillSplit.Contracts.User;
+﻿using System.Security.Claims;
+using BillSplit.Contracts.Authorization;
 
 namespace BillSplit.Services.Abstractions.Interfaces;
 
 public interface IAuthorizationService
 {
-    Task SetInitialPassword(SetInitialPasswordDto request, CancellationToken cancellationToken = default);
-    Task UpdatePassword(UserClaims user, UpdatePasswordDto request, CancellationToken cancellationToken = default);
-    Task<LoginResponseDto> Login(LoginRequestDto loginRequest, CancellationToken cancellationToken = default);
+    Task SetInitialPassword(SetInitialPasswordDto request);
+    Task UpdatePassword(ClaimsPrincipal user, UpdatePasswordDto request);
+    Task<LoginResponseDto> Login(LoginRequestDto request);
 }

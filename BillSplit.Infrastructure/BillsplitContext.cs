@@ -1,14 +1,11 @@
 ﻿using BillSplit.Domain.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace BillSplit.Persistence;
 
-public partial class BillsplitContext : DbContext, IApplicationDbContext
+public partial class BillsplitContext : IdentityUserContext<User, long>, IApplicationDbContext 
 {
-    public BillsplitContext()
-    {
-    }
-
     public BillsplitContext(DbContextOptions<BillsplitContext> options)
         : base(options)
     {
@@ -20,13 +17,15 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
 
     public virtual DbSet<BillGroup> BillGroups { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
-
     public virtual DbSet<UserBillGroup> UserBillGroups { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        modelBuilder.Entity<Bill>(entity =>
+        base.OnModelCreating(builder);
+        
+        builder.HasDefaultSchema("billsplit");
+        
+        builder.Entity<Bill>(entity =>
         {
             entity.ToTable("Bill", "billsplit");
 
@@ -56,7 +55,7 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
                 .HasConstraintName("Bill_Updated_By_User__fk");
         });
 
-        modelBuilder.Entity<BillAllocation>(entity =>
+        builder.Entity<BillAllocation>(entity =>
         {
             entity.ToTable("BillAllocation", "billsplit");
 
@@ -84,7 +83,7 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
                 .HasConstraintName("BillAllocation_User_Id_fk");
         });
 
-        modelBuilder.Entity<BillGroup>(entity =>
+        builder.Entity<BillGroup>(entity =>
         {
             entity.ToTable("BillGroup", "billsplit");
 
@@ -104,11 +103,9 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
                 .HasConstraintName("BillGroup_Updated_By_User_Id_fk");
         });
 
-        modelBuilder.Entity<User>(entity =>
+        builder.Entity<User>(entity =>
         {
             entity.ToTable("User", "billsplit");
-
-            entity.Property(e => e.Email).HasMaxLength(254);
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.InverseCreatedByNavigation)
                 .HasForeignKey(d => d.CreatedBy)
@@ -123,7 +120,7 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
                 .HasConstraintName("User_Updated_By_User__fk");
         });
 
-        modelBuilder.Entity<UserBillGroup>(entity =>
+        builder.Entity<UserBillGroup>(entity =>
         {
             entity.ToTable("UserBillGroup", "billsplit");
 
@@ -151,7 +148,7 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
                 .HasConstraintName("UserBillGroup_User_Id_fk");
         });
 
-        OnModelCreatingPartial(modelBuilder);
+        OnModelCreatingPartial(builder);   
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

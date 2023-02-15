@@ -43,17 +43,20 @@ internal sealed class BillGroupService : IBillGroupService
 
         var bills = (await _billRepository.GetGroupBills(billGroup.Id, true, cancellationToken)).ToList();
 
-        var billsCreatedBy = _userService.GetUsers(bills.Select(x => x.CreatedBy), cancellationToken);
-        var billsPaidBy = _userService.GetUsers(bills.Select(x => x.PaidBy), cancellationToken);
+        var billsCreatedBy = _userService.GetUsers(bills.Select(x => x.CreatedBy).ToHashSet(), cancellationToken);
+        var billsPaidBy = _userService.GetUsers(bills.Select(x => x.PaidBy).ToHashSet(), cancellationToken);
 
         var tasks = new List<Task>();
         tasks.AddRange(new Task[] { billsCreatedBy, billsPaidBy });
 
         await Task.WhenAll(tasks);
 
-        var billsAllocationsUsers = await _userService.GetUsers(bills
+        var userIds = bills
             .SelectMany(x=>x.BillAllocations)
-            .Select(x => x.UserId), cancellationToken);
+            .Select(x => x.UserId)
+            .ToHashSet();
+        
+        var billsAllocationsUsers = await _userService.GetUsers(userIds, cancellationToken);
 
         return new BillGroupDto(
             billGroup.Id,
@@ -222,7 +225,7 @@ internal sealed class BillGroupService : IBillGroupService
 
     private async Task ValidateAllUsersExist(IEnumerable<long> userIds, CancellationToken cancellationToken = default)
     {
-        await _userService.GetUsers(userIds, cancellationToken);
+        await _userService.GetUsers(userIds.ToHashSet(), cancellationToken);
     }
 
     private static bool UserHasAccess(UserClaims user, BillGroup billGroup)
