@@ -1,4 +1,5 @@
-﻿using System.Security.Authentication;
+﻿using System.Globalization;
+using System.Security.Authentication;
 using System.Security.Claims;
 using BillSplit.Contracts.Authorization;
 using BillSplit.Domain.Exceptions;
@@ -29,7 +30,7 @@ internal sealed class AuthorizationService : IAuthorizationService
             throw new PasswordCheckException("The password did not match with the repeated password");
         }
 
-        var user = (await _userManager.FindByIdAsync(request.UserId.ToString())).ThrowIfNull();
+        var user = (await _userManager.FindByIdAsync(request.UserId.ToString(CultureInfo.InvariantCulture))).ThrowIfNull();
         await _userManager.AddPasswordAsync(user, request.Password);
     }
 

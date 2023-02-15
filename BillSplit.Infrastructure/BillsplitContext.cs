@@ -19,13 +19,13 @@ public partial class BillsplitContext : IdentityUserContext<User, long>, IApplic
 
     public virtual DbSet<UserBillGroup> UserBillGroups { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
+        base.OnModelCreating(builder);
         
-        modelBuilder.HasDefaultSchema("billsplit");
+        builder.HasDefaultSchema("billsplit");
         
-        modelBuilder.Entity<Bill>(entity =>
+        builder.Entity<Bill>(entity =>
         {
             entity.ToTable("Bill", "billsplit");
 
@@ -55,7 +55,7 @@ public partial class BillsplitContext : IdentityUserContext<User, long>, IApplic
                 .HasConstraintName("Bill_Updated_By_User__fk");
         });
 
-        modelBuilder.Entity<BillAllocation>(entity =>
+        builder.Entity<BillAllocation>(entity =>
         {
             entity.ToTable("BillAllocation", "billsplit");
 
@@ -83,7 +83,7 @@ public partial class BillsplitContext : IdentityUserContext<User, long>, IApplic
                 .HasConstraintName("BillAllocation_User_Id_fk");
         });
 
-        modelBuilder.Entity<BillGroup>(entity =>
+        builder.Entity<BillGroup>(entity =>
         {
             entity.ToTable("BillGroup", "billsplit");
 
@@ -103,7 +103,7 @@ public partial class BillsplitContext : IdentityUserContext<User, long>, IApplic
                 .HasConstraintName("BillGroup_Updated_By_User_Id_fk");
         });
 
-        modelBuilder.Entity<User>(entity =>
+        builder.Entity<User>(entity =>
         {
             entity.ToTable("User", "billsplit");
 
@@ -120,7 +120,7 @@ public partial class BillsplitContext : IdentityUserContext<User, long>, IApplic
                 .HasConstraintName("User_Updated_By_User__fk");
         });
 
-        modelBuilder.Entity<UserBillGroup>(entity =>
+        builder.Entity<UserBillGroup>(entity =>
         {
             entity.ToTable("UserBillGroup", "billsplit");
 
@@ -148,7 +148,7 @@ public partial class BillsplitContext : IdentityUserContext<User, long>, IApplic
                 .HasConstraintName("UserBillGroup_User_Id_fk");
         });
 
-        OnModelCreatingPartial(modelBuilder);   
+        OnModelCreatingPartial(builder);   
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

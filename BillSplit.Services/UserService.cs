@@ -1,4 +1,5 @@
-﻿using BillSplit.Contracts.User;
+﻿using System.Globalization;
+using BillSplit.Contracts.User;
 using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
 using BillSplit.Services.Abstractions.Interfaces;
@@ -40,7 +41,7 @@ internal sealed class UserService : IUserService
 
     public async Task UpdateUser(long id, UpsertUserDto request)
     {
-        var user = (await _userManager.FindByIdAsync(id.ToString())).ThrowIfNull();
+        var user = (await _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture))).ThrowIfNull();
 
         user.Name = request.Name;
         user.Email = request.Email;
@@ -59,7 +60,7 @@ internal sealed class UserService : IUserService
 
     public async Task<UserDto> GetUser(long id)
     {
-        var user = (await _userManager.FindByIdAsync(id.ToString())).ThrowIfNull(id);
+        var user = (await _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture))).ThrowIfNull(id);
         return MapToDto(user);
     }
 
