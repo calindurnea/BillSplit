@@ -155,4 +155,28 @@ public partial class BillsplitContext : DbContext, IApplicationDbContext
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var entries = ChangeTracker
+            .Entries()
+            .Where(e => e is { Entity: BaseEntity, State: EntityState.Added or EntityState.Modified });
+
+        foreach (var entityEntry in entries)
+        {
+            ((BaseEntity)entityEntry.Entity).UpdatedDate = DateTime.UtcNow;
+
+            if (entityEntry.State == EntityState.Added)
+            {
+                ((BaseEntity)entityEntry.Entity).CreatedDate = DateTime.UtcNow;
+            }
+
+            if (((BaseEntity)entityEntry.Entity).IsDeleted)
+            {
+                ((BaseEntity)entityEntry.Entity).DeletedDate = DateTime.UtcNow;
+            }
+        }
+
+        return base.SaveChangesAsync(cancellationToken);
+    }
 }

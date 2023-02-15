@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BillSplit.Persistence.Migrations
 {
     [DbContext(typeof(BillsplitContext))]
-    [Migration("20230214205018_Init")]
+    [Migration("20230215184244_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -266,6 +266,9 @@ namespace BillSplit.Persistence.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");

@@ -264,6 +264,9 @@ namespace BillSplit.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 

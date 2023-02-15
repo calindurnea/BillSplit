@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BillSplit.Domain.Models;
 
-public partial class BillAllocation
+public partial class BillAllocation : BaseEntity
 {
     public long Id { get; set; }
 
@@ -18,14 +18,6 @@ public partial class BillAllocation
     public long? UpdatedBy { get; set; }
 
     public long? DeletedBy { get; set; }
-
-    public DateTime CreatedDate { get; set; }
-
-    public DateTime? UpdatedDate { get; set; }
-
-    public DateTime? DeletedDate { get; set; }
-
-    public bool IsDeleted { get; set; }
 
     public decimal PaidAmount { get; set; }
 

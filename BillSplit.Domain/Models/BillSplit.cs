@@ -1,6 +1,6 @@
 ﻿namespace BillSplit.Domain.Models;
 
-public partial class BillSplit
+public partial class BillSplit:BaseEntity
 {
     public long Id { get; set; }
 
@@ -15,14 +15,6 @@ public partial class BillSplit
     public long? UpdatedBy { get; set; }
 
     public long? DeletedBy { get; set; }
-
-    public DateTime CreatedDate { get; set; }
-
-    public DateTime? UpdatedDate { get; set; }
-
-    public DateTime? DeletedDate { get; set; }
-
-    public bool? IsDeleted { get; set; }
 
     public virtual Bill Bill { get; set; } = null!;
 

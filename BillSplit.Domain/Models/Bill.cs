@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BillSplit.Domain.Models;
 
-public partial class Bill
+public partial class Bill : BaseEntity
 {
     public long Id { get; set; }
 
@@ -17,16 +17,8 @@ public partial class Bill
 
     public long? DeletedBy { get; set; }
 
-    public DateTime CreatedDate { get; set; }
-
-    public DateTime? UpdatedDate { get; set; }
-
-    public DateTime? DeletedDate { get; set; }
-
     public long BillGroupId { get; set; }
-
-    public bool IsDeleted { get; set; }
-
+    
     public long PaidBy { get; set; }
 
     public virtual ICollection<BillAllocation> BillAllocations { get; } = new List<BillAllocation>();

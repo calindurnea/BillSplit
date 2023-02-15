@@ -1,5 +1,4 @@
-﻿using AutoFixture;
-using BillSplit.Domain.Models;
+﻿using BillSplit.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BillSplit.Persistence
@@ -17,7 +16,7 @@ namespace BillSplit.Persistence
                 new User("default@user.com", "Default User", 123456789)
             };
 
-            foreach(var user in users)
+            foreach (var user in users)
             {
                 dbContext.Users.Add(user);
             }

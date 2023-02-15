@@ -71,6 +71,7 @@ internal sealed class AuthorizationService : IAuthorizationService
         }
 
         user.Password = hash;
+        user.UpdatedBy = userId;
         await _userRepository.UpdateUser(user, cancellationToken);
     }
 
