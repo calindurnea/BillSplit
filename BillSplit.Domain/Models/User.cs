@@ -1,6 +1,9 @@
-﻿namespace BillSplit.Domain.Models;
+﻿using System;
+using System.Collections.Generic;
 
-public partial class User
+namespace BillSplit.Domain.Models;
+
+public partial class User : BaseEntity
 {
     public long Id { get; set; }
 
@@ -19,14 +22,6 @@ public partial class User
     public long? UpdatedBy { get; set; }
 
     public long? DeletedBy { get; set; }
-
-    public DateTime CreatedDate { get; set; }
-
-    public DateTime? UpdatedDate { get; set; }
-
-    public DateTime? DeletedDate { get; set; }
-
-    public bool IsDeleted { get; set; }
 
     public virtual ICollection<BillAllocation> BillAllocationCreatedByNavigations { get; } = new List<BillAllocation>();
 

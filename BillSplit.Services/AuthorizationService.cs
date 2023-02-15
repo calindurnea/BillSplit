@@ -23,7 +23,7 @@ internal sealed class AuthorizationService : IAuthorizationService
 
     public async Task SetInitialPassword(SetInitialPasswordDto request, CancellationToken cancellationToken = default)
     {
-        if (string.Equals(request.Password, request.PasswordCheck, StringComparison.Ordinal))
+        if (!string.Equals(request.Password, request.PasswordCheck, StringComparison.Ordinal))
         {
             throw new PasswordCheckException("The password did not match with the repeated password");
         }
@@ -71,6 +71,7 @@ internal sealed class AuthorizationService : IAuthorizationService
         }
 
         user.Password = hash;
+        user.UpdatedBy = userId;
         await _userRepository.UpdateUser(user, cancellationToken);
     }
 
