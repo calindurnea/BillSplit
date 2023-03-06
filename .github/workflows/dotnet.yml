@@ -6,8 +6,12 @@ name: .NET
 on:
   push:
     branches: [ "master" ]
+    paths: 
+      - "backend/"
   pull_request:
     branches: [ "master" ]
+    paths: 
+      - "backend/"
   workflow_dispatch:
 
 jobs:
@@ -22,8 +26,8 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ./backend/
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build ./backend/ --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test ./backend/ --no-build --verbosity normal
