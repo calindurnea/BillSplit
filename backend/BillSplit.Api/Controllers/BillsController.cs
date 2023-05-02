@@ -8,6 +8,8 @@ namespace BillSplit.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class BillsController : ControllerBase
 {
     private readonly IBillService _billService;
@@ -19,8 +21,6 @@ public class BillsController : ControllerBase
 
     [HttpGet("{id:long}", Name = nameof(GetBills))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BillDto))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetBills([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
@@ -30,8 +30,6 @@ public class BillsController : ControllerBase
 
     [HttpPut(Name = nameof(UpsertBill))]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpsertBill([BindRequired, FromBody] UpsertBillDto upsertBill, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
@@ -41,8 +39,6 @@ public class BillsController : ControllerBase
 
     [HttpDelete("{id:long}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteBill([BindRequired, FromRoute] long id, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();

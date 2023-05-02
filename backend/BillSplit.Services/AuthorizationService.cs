@@ -14,13 +14,11 @@ internal sealed class AuthorizationService : IAuthorizationService
 {
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly UserManager<User> _userManager;
-    private readonly SignInManager<User> _signInManager;
 
-    public AuthorizationService(IJwtTokenGenerator jwtTokenGenerator, UserManager<User> userManager, SignInManager<User> signInManager)
+    public AuthorizationService(IJwtTokenGenerator jwtTokenGenerator, UserManager<User> userManager)
     {
         _jwtTokenGenerator = jwtTokenGenerator ?? throw new ArgumentNullException(nameof(jwtTokenGenerator));
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
-        _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
     }
 
     public async Task SetInitialPassword(SetInitialPasswordDto request)
@@ -65,10 +63,5 @@ internal sealed class AuthorizationService : IAuthorizationService
         var token = _jwtTokenGenerator.CreateToken(user);
 
         return new LoginResponseDto(token);
-    }
-
-    public async Task Logout()
-    {
-        await _signInManager.SignOutAsync();
     }
 }

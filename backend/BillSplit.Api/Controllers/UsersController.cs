@@ -9,6 +9,8 @@ namespace BillSplit.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
