@@ -8,6 +8,8 @@ namespace BillSplit.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class BillGroupsController : ControllerBase
 {
     private readonly IBillGroupService _billGroupsService;
@@ -19,7 +21,6 @@ public class BillGroupsController : ControllerBase
 
     [HttpGet(Name = nameof(GetAllBillGroups))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<UserBillGroupDto>))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAllBillGroups(CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
@@ -29,8 +30,6 @@ public class BillGroupsController : ControllerBase
 
     [HttpGet("{id:long}", Name = nameof(GetBillGroupById))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BillGroupDto))]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetBillGroupById([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
@@ -40,7 +39,6 @@ public class BillGroupsController : ControllerBase
 
     [HttpPut("{id:long}/add-user", Name = nameof(AddBillGroupUser))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AddBillGroupUser([FromRoute, BindRequired] long id, [BindRequired, FromQuery] long userId, CancellationToken cancellationToken = default)
     {
@@ -51,7 +49,6 @@ public class BillGroupsController : ControllerBase
 
     [HttpPut("{id:long}/remove-user", Name = nameof(RemoveBillGroupUser))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> RemoveBillGroupUser([FromRoute, BindRequired] long id, [BindRequired, FromQuery] long userId, CancellationToken cancellationToken = default)
     {
@@ -62,7 +59,6 @@ public class BillGroupsController : ControllerBase
 
     [HttpPut("{id:long}/name", Name = nameof(UpdateBillGroupName))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateBillGroupName([FromRoute, BindRequired] long id, [BindRequired, FromBody] UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken = default)
     {
@@ -73,7 +69,6 @@ public class BillGroupsController : ControllerBase
 
     [HttpPost(Name = nameof(CreateBillGroup))]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateBillGroup([BindRequired, FromBody] CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default)
     {
@@ -84,7 +79,6 @@ public class BillGroupsController : ControllerBase
 
     [HttpDelete("{id:long}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteBillGroup([BindRequired, FromRoute] long id, CancellationToken cancellationToken = default)
     {

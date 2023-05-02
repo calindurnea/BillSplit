@@ -8,6 +8,8 @@ namespace BillSplit.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class AuthorizationController : ControllerBase
 {
     private readonly IAuthorizationService _authorizationService;
