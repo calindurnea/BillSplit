@@ -7,7 +7,7 @@ version: 2
 updates:
   # Maintain dependencies for NuGet
   - package-ecosystem: "NuGet" # See documentation for possible values
-    directory: "backend/" # Location of package manifests
+    directory: "/backend" # Location of package manifests
     schedule:
       interval: "weekly"
   
