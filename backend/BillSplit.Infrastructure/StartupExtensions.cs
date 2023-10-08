@@ -39,7 +39,7 @@ public static class ServiceCollectionExtensions
                 options.Password.RequireLowercase = false;
             })
             .AddEntityFrameworkStores<BillsplitContext>();
-        
+
         return services;
     }
 

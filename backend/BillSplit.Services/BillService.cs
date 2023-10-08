@@ -92,9 +92,9 @@ internal sealed class BillService : IBillService
             user.Id,
             upsertBill.BillGroupId,
             upsertBill.PaidById,
-            upsertBill.BillAllocations.Select(x => 
+            upsertBill.BillAllocations.Select(x =>
                 new BillAllocation(x.UserId, x.Amount, user.Id)).ToList()), cancellationToken);
-        
+
         return bill.Id;
     }
 

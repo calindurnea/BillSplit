@@ -15,7 +15,7 @@ public partial class Bill : BaseEntity
     public long? DeletedBy { get; set; }
 
     public long BillGroupId { get; set; }
-    
+
     public long PaidBy { get; set; }
 
     public virtual ICollection<BillAllocation> BillAllocations { get; } = new List<BillAllocation>();

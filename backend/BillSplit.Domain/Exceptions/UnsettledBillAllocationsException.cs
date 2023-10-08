@@ -6,9 +6,9 @@ public class UnsettledBillAllocationsException : Exception
 {
     protected UnsettledBillAllocationsException(SerializationInfo info, StreamingContext context)
     {
-        
+
     }
-    
+
     public UnsettledBillAllocationsException(string message)
         : base(message)
     {

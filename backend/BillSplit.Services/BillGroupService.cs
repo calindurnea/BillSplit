@@ -52,10 +52,10 @@ internal sealed class BillGroupService : IBillGroupService
         await Task.WhenAll(tasks);
 
         var userIds = bills
-            .SelectMany(x=>x.BillAllocations)
+            .SelectMany(x => x.BillAllocations)
             .Select(x => x.UserId)
             .ToHashSet();
-        
+
         var billsAllocationsUsers = await _userService.GetUsers(userIds, cancellationToken);
 
         return new BillGroupDto(
@@ -138,7 +138,7 @@ internal sealed class BillGroupService : IBillGroupService
 
         billGroup.Name = updateBillGroupName.Name;
         billGroup.UpdatedBy = user.Id;
-        
+
         await _billGroupRepository.UpdateBillGroup(billGroup, cancellationToken);
     }
 
@@ -163,7 +163,7 @@ internal sealed class BillGroupService : IBillGroupService
         userBillGroup.IsDeleted = true;
         userBillGroup.DeletedBy = user.Id;
         userBillGroup.DeletedDate = DateTime.UtcNow;
-        
+
         await _userBillGroupRepository.UpdateUserBillGroup(userBillGroup, cancellationToken);
     }
 
@@ -194,7 +194,7 @@ internal sealed class BillGroupService : IBillGroupService
         {
             return;
         }
-        
+
         var billGroupAllocations = await _billAllocationRepository.GetBillGroupAllocations(id, cancellationToken);
 
         if (billGroupAllocations.Any(x => x.Amount > x.PaidAmount))

@@ -7,9 +7,9 @@ public class NotFoundException : Exception
 {
     protected NotFoundException(SerializationInfo info, StreamingContext context)
     {
-        
+
     }
-    
+
     public NotFoundException(string name) : base($"Entity \"{name}\" was not found")
     {
     }
