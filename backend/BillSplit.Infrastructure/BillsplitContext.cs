@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BillSplit.Persistence;
 
-public partial class BillsplitContext : IdentityUserContext<User, long>, IApplicationDbContext 
+public partial class BillsplitContext : IdentityUserContext<User, long>, IApplicationDbContext
 {
     public BillsplitContext(DbContextOptions<BillsplitContext> options)
         : base(options)
@@ -22,9 +22,9 @@ public partial class BillsplitContext : IdentityUserContext<User, long>, IApplic
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        
+
         builder.HasDefaultSchema("billsplit");
-        
+
         builder.Entity<Bill>(entity =>
         {
             entity.ToTable("Bill", "billsplit");
@@ -148,7 +148,7 @@ public partial class BillsplitContext : IdentityUserContext<User, long>, IApplic
                 .HasConstraintName("UserBillGroup_User_Id_fk");
         });
 
-        OnModelCreatingPartial(builder);   
+        OnModelCreatingPartial(builder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

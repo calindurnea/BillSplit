@@ -48,7 +48,7 @@ internal sealed class UserService : IUserService
         user.PhoneNumber = request.PhoneNumber;
         user.UpdatedDate = DateTime.UtcNow;
         user.UpdatedBy = id;
-        
+
         await _userManager.UpdateAsync(user);
     }
 
