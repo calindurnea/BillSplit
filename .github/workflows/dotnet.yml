@@ -5,11 +5,11 @@ name: .NET
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
     paths: 
       - "backend/"
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
     paths: 
       - "backend/"
   workflow_dispatch:
@@ -24,7 +24,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
     - name: Restore dependencies
       run: dotnet restore ./backend/
     - name: Build
