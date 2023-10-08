@@ -14,20 +14,17 @@ internal sealed class BillService : IBillService
     private readonly IBillRepository _billRepository;
     private readonly IUserService _userService;
     private readonly IUserBillGroupRepository _userBillGroupRepository;
-    private readonly IBillAllocationRepository _billAllocationRepository;
     private readonly IBillGroupRepository _billGroupRepository;
 
     public BillService(
         IBillRepository billRepository,
         IUserService userService,
         IUserBillGroupRepository userBillGroupRepository,
-        IBillAllocationRepository billAllocationRepository,
         IBillGroupRepository billGroupRepository)
     {
         _billRepository = billRepository ?? throw new ArgumentNullException(nameof(billRepository));
         _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         _userBillGroupRepository = userBillGroupRepository ?? throw new ArgumentNullException(nameof(userBillGroupRepository));
-        _billAllocationRepository = billAllocationRepository ?? throw new ArgumentNullException(nameof(billAllocationRepository));
         _billGroupRepository = billGroupRepository ?? throw new ArgumentNullException(nameof(billGroupRepository));
     }
 

@@ -6,7 +6,6 @@ using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
 using BillSplit.Services.Abstractions.Interfaces;
 using BillSplit.Services.Extensions;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 
 namespace BillSplit.Services;
@@ -15,13 +14,11 @@ internal sealed class AuthorizationService : IAuthorizationService
 {
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly UserManager<User> _userManager;
-    private readonly SignInManager<User> _signInManager;
 
-    public AuthorizationService(IJwtTokenGenerator jwtTokenGenerator, UserManager<User> userManager, SignInManager<User> signInManager)
+    public AuthorizationService(IJwtTokenGenerator jwtTokenGenerator, UserManager<User> userManager)
     {
         _jwtTokenGenerator = jwtTokenGenerator ?? throw new ArgumentNullException(nameof(jwtTokenGenerator));
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
-        _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
     }
 
     public async Task SetInitialPassword(SetInitialPasswordDto request)
@@ -63,10 +60,8 @@ internal sealed class AuthorizationService : IAuthorizationService
             throw new AuthenticationException("Wrong username or password");
         }
 
-        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+        var tokenResult = _jwtTokenGenerator.CreateToken(user);
 
-        var token = _jwtTokenGenerator.CreateToken(user);
-
-        return new LoginResponseDto(token);
+        return new LoginResponseDto(tokenResult.Token, tokenResult.ExpiresOn);
     }
 }

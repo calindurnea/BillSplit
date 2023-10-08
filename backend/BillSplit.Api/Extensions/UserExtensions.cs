@@ -15,7 +15,7 @@ internal static class UserExtensions
             throw new AuthenticationException();
         }
 
-        var userClaims = identity.Claims;
+        var userClaims = identity.Claims.ToList();
         var id = userClaims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
         var email = userClaims.First(x => x.Type == ClaimTypes.Email).Value;
 

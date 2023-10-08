@@ -50,12 +50,12 @@ public static class ServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(app, nameof(app));
 
         var dbInitializer = app.ApplicationServices.GetRequiredService<DbInitializer>();
-        
+
         var initializationTask = Task.Run(async () => await dbInitializer.Initialize());
         initializationTask.Wait();
 
         Console.WriteLine($"Initialization completed successfully: {initializationTask.IsCompletedSuccessfully}");
-        
+
         return app;
     }
 }

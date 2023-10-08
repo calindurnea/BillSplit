@@ -21,7 +21,7 @@ internal sealed class DbInitializer
 
         var context = services.GetRequiredService<BillsplitContext>();
         var userManager = services.GetRequiredService<UserManager<User>>();
-        
+
         ArgumentNullException.ThrowIfNull(context, nameof(context));
         await context.Database.MigrateAsync();
         if (context.Users.Any()) return;
@@ -40,8 +40,7 @@ internal sealed class DbInitializer
 
         foreach (var user in users)
         {
-            var result = await userManager.CreateAsync(user, "some random password");
-            // dbContext.Users.Add(user);
+            await userManager.CreateAsync(user, "some random password");
         }
 
         await context.SaveChangesAsync();

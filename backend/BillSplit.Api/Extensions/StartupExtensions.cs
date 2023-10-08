@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using BillSplit.Services.Extensions;
 using Microsoft.IdentityModel.Tokens;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace BillSplit.Api.Extensions;
 
@@ -15,7 +16,7 @@ public static class StartupExtensions
         {
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\" (REQUIRES THE TOKEN TO START WITH 'Bearer ')",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.ApiKey,
@@ -39,6 +40,9 @@ public static class StartupExtensions
                     new List<string>()
                 }
             });
+
+            var filePath = Path.Combine(AppContext.BaseDirectory, "BillSplit.Api.xml");
+            options.IncludeXmlComments(filePath);
         });
 
         return services;

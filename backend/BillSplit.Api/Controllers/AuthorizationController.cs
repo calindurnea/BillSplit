@@ -6,30 +6,49 @@ using IAuthorizationService = BillSplit.Services.Abstractions.Interfaces.IAuthor
 
 namespace BillSplit.Api.Controllers;
 
+/// <inheritdoc />
 [ApiController]
 [Route("api/[controller]")]
-[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-[ProducesResponseType(StatusCodes.Status403Forbidden)]
+[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
 public class AuthorizationController : ControllerBase
 {
     private readonly IAuthorizationService _authorizationService;
 
+    /// <summary>
+    /// Provides functionality for managing authorization
+    /// </summary>
+    /// <param name="authorizationService"></param>
+    /// <exception cref="ArgumentNullException"></exception>
     public AuthorizationController(IAuthorizationService authorizationService)
     {
         _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
     }
 
+    /// <summary>
+    /// Used to set new password for user after creation
+    /// </summary>
+    /// <param name="setInitialPassword">Initial password request</param>
+    /// <returns>No content if successful, an error otherwise</returns>
     [AllowAnonymous]
-    [HttpPost("password")]
+    [HttpPost("password", Name = nameof(SetPassword))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SetPassword([FromBody, BindRequired] SetInitialPasswordDto setInitialPassword)
     {
         await _authorizationService.SetInitialPassword(setInitialPassword);
         return NoContent();
     }
 
-    [HttpPut("password")]
+    /// <summary>
+    /// Updates the password for the user
+    /// </summary>
+    /// <param name="updatePassword">Password update request</param>
+    /// <returns>No content if successful, an error otherwise</returns>
+    [HttpPut("password", Name = nameof(UpdatePassword))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdatePassword([FromBody, BindRequired] UpdatePasswordDto updatePassword)
     {
         var user = HttpContext.User;
@@ -37,6 +56,11 @@ public class AuthorizationController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Generates a token to be used for authorization
+    /// </summary>
+    /// <param name="loginRequest">Login request</param>
+    /// <returns>Bearer token and expiration date if login is successful</returns>
     [AllowAnonymous]
     [HttpPost("login", Name = nameof(Login))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponseDto))]
@@ -46,6 +70,11 @@ public class AuthorizationController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>
+    /// Not implemented
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
     [HttpPost("logout", Name = nameof(Logout))]
     public Task Logout()
     {

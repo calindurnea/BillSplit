@@ -1,3 +1,3 @@
 ﻿namespace BillSplit.Contracts.Authorization;
 
-public sealed record LoginResponseDto(string Token);
+public sealed record LoginResponseDto(string Token, DateTime ExpiresOn);

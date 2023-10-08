@@ -20,12 +20,12 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
 
     private const int ExpirationMinutes = 666;
 
-    public string CreateToken(User user)
+    public CreateTokenResult CreateToken(User user)
     {
         var expiration = DateTime.UtcNow.AddMinutes(ExpirationMinutes);
         var token = CreateJwtToken(CreateClaims(user), CreateSigningCredentials(), expiration);
         var tokenHandler = new JwtSecurityTokenHandler();
-        return tokenHandler.WriteToken(token);
+        return new CreateTokenResult(tokenHandler.WriteToken(token), expiration);
     }
 
     private JwtSecurityToken CreateJwtToken(
@@ -48,11 +48,11 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
             var iat = (long)issuedAt.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, iat.ToString(CultureInfo.InvariantCulture)),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
-                new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(ClaimTypes.Email, user.Email!)
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(JwtRegisteredClaimNames.Iat, iat.ToString(CultureInfo.InvariantCulture)),
+                new(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
+                new(ClaimTypes.Name, user.UserName!),
+                new(ClaimTypes.Email, user.Email!)
             };
             return claims;
         }
