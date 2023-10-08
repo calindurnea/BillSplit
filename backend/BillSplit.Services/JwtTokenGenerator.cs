@@ -44,10 +44,12 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
     {
         try
         {
+            var issuedAt = DateTimeOffset.UtcNow;
+            var iat = (long)issuedAt.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString(CultureInfo.InvariantCulture)),
+                new Claim(JwtRegisteredClaimNames.Iat, iat.ToString(CultureInfo.InvariantCulture)),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.Email, user.Email!)

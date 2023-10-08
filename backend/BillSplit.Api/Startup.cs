@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BillSplit.Api.Extensions;
 using BillSplit.Domain;
 using BillSplit.Persistence;
@@ -37,7 +38,9 @@ public class Startup
         {
             options.FallbackPolicy = new AuthorizationPolicyBuilder()
                 .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-                .RequireAuthenticatedUser()
+                // .RequireClaim(ClaimTypes.NameIdentifier)
+                // .RequireClaim(ClaimTypes.Email)
+                // .RequireAuthenticatedUser()
                 .Build();
         });
     }

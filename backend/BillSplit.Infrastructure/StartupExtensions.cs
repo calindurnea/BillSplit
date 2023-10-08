@@ -2,6 +2,7 @@
 using BillSplit.Persistence.Repositories;
 using BillSplit.Persistence.Repositories.Abstractions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
@@ -26,7 +27,7 @@ public static class ServiceCollectionExtensions
             x => x.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "billsplit")));
         services.AddScoped<IApplicationDbContext, BillsplitContext>();
 
-        services.AddScoped<DbInitializer>();
+        services.AddSingleton<DbInitializer>();
 
         services.AddIdentityCore<User>(options =>
             {
@@ -37,8 +38,9 @@ public static class ServiceCollectionExtensions
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
-            })
-            .AddEntityFrameworkStores<BillsplitContext>();
+            }).AddSignInManager<SignInManager<User>>()
+            .AddEntityFrameworkStores<BillsplitContext>()
+            .AddDefaultTokenProviders();
 
         return services;
     }
@@ -47,12 +49,13 @@ public static class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(app, nameof(app));
 
-        using var scope = app.ApplicationServices.CreateScope();
-        var services = scope.ServiceProvider;
+        var dbInitializer = app.ApplicationServices.GetRequiredService<DbInitializer>();
+        
+        var initializationTask = Task.Run(async () => await dbInitializer.Initialize());
+        initializationTask.Wait();
 
-        var context = services.GetRequiredService<BillsplitContext>();
-        DbInitializer.Initialize(context);
-
+        Console.WriteLine($"Initialization completed successfully: {initializationTask.IsCompletedSuccessfully}");
+        
         return app;
     }
 }
