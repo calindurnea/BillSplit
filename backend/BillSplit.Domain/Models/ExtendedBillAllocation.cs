@@ -1,13 +1,12 @@
-﻿namespace BillSplit.Domain.Models
+﻿namespace BillSplit.Domain.Models;
+
+public partial class BillAllocation
 {
-    public partial class BillAllocation
+    public BillAllocation(long userId, decimal amount, long createdBy)
     {
-        public BillAllocation(long userId, decimal amount, long createdBy)
-        {
-            UserId = userId;
-            Amount = decimal.Round(amount, 2);
-            CreatedBy = createdBy;
-            PaidAmount = 0;
-        }
+        UserId = userId;
+        Amount = decimal.Round(amount, 2);
+        CreatedBy = createdBy;
+        PaidAmount = 0;
     }
 }

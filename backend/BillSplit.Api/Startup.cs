@@ -1,9 +1,13 @@
+using System.Security.Claims;
 using BillSplit.Api.Extensions;
 using BillSplit.Domain;
 using BillSplit.Persistence;
 using BillSplit.Services.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace BillSplit.Api;
 
@@ -19,41 +23,42 @@ public class Startup
     // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddControllers();
+        services.AddControllers(options => { options.Filters.Add(new ProducesAttribute("application/json")); });
 
-        services.AddEndpointsApiExplorer();
-        services.ConfigureSwagger();
-
-        services.AddInfrastructure(Configuration);
-        services.AddServices(Configuration);
-        services.AddRepositories();
-        services.AddValidators();
-
-        // services.AddOutputCache();
-
-        services.ConfigureAuthentication(Configuration);
-
-        services.AddAuthorization(options =>
-        {
-            options.FallbackPolicy = new AuthorizationPolicyBuilder()
-                .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-                .RequireAuthenticatedUser()
-                .Build();
-        });
+        services.AddEndpointsApiExplorer()
+            .ConfigureSwagger()
+            .AddInfrastructure(Configuration)
+            .AddServices(Configuration)
+            .AddRepositories()
+            .AddValidators()
+            // .AddOutputCache();
+            .ConfigureAuthentication(Configuration)
+            .AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser()
+                    .RequireClaim(ClaimTypes.Email)
+                    .RequireClaim(ClaimTypes.NameIdentifier)
+                    .RequireClaim(ClaimTypes.Name)
+                    .Build();
+            });
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        app.UseSwagger();
-        app.UseSwaggerUI(options =>
-        {
-            options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-            options.RoutePrefix = "swagger";
-        });
-
         if (env.IsDevelopment())
         {
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+                options.RoutePrefix = "swagger";
+                options.DisplayOperationId();
+                options.DisplayRequestDuration();
+            });
+
             app.UseDeveloperExceptionPage();
             app.SeedData();
         }
@@ -64,6 +69,7 @@ public class Startup
             app.UseHsts();
         }
 
+        app.UseExceptionHandler(options => { });
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         // app.UseOutputCache();
@@ -72,9 +78,6 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseEndpoints(o =>
-        {
-            o.MapControllers();
-        });
+        app.UseEndpoints(o => { o.MapControllers().RequireAuthorization(); });
     }
 }

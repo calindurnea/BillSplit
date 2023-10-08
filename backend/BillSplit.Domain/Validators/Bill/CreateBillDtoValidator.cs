@@ -9,18 +9,18 @@ public class CreateBillDtoValidator : AbstractValidator<UpsertBillDto>
 {
     public CreateBillDtoValidator()
     {
-        RuleFor(_ => _.BillGroupId).GreaterThan(0);
-        RuleFor(_ => _.PaidById).GreaterThan(0);
+        RuleFor(upsertBillDto => upsertBillDto.BillGroupId).GreaterThan(0);
+        RuleFor(upsertBillDto => upsertBillDto.PaidById).GreaterThan(0);
 
-        RuleFor(_ => _.Amount).GreaterThan(0)
+        RuleFor(upsertBillDto => upsertBillDto.Amount).GreaterThan(0)
             .Must((args, amount) => EqualSumOfAllocations(args.BillAllocations, amount))
             .WithMessage("The bill amount must equal to the sum of the allocations");
-        RuleFor(_ => _.Comment).MaximumLength(512);
+        RuleFor(upsertBillDto => upsertBillDto.Comment).MaximumLength(512);
 
-        RuleFor(_ => _.BillAllocations)
-            .Must((args, billAllocations) => HaveUniqueUserIds(billAllocations))
+        RuleFor(upsertBillDto => upsertBillDto.BillAllocations)
+            .Must((_, billAllocations) => HaveUniqueUserIds(billAllocations))
             .WithMessage("A user can have maximum one bill allocation");
-        RuleForEach(_ => _.BillAllocations).SetValidator(new CreateBillAllocationDtoValidator());
+        RuleForEach(d => d.BillAllocations).SetValidator(new CreateBillAllocationDtoValidator());
     }
 
     private static bool HaveUniqueUserIds(IEnumerable<CreateBillAllocationDto> billAllocations)

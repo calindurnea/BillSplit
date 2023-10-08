@@ -9,6 +9,8 @@ namespace BillSplit.Persistence.Migrations
     /// <inheritdoc />
     public partial class Init : Migration
     {
+        private static readonly string[] userIdBillGroupIdIndexColumns = new[] { "UserId", "BillGroupId" };
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -472,7 +474,7 @@ namespace BillSplit.Persistence.Migrations
                 name: "UserBillGroup_UserId_BillGroupId_uindex",
                 schema: "billsplit",
                 table: "UserBillGroup",
-                columns: new[] { "UserId", "BillGroupId" },
+                columns: userIdBillGroupIdIndexColumns,
                 unique: true);
         }
 

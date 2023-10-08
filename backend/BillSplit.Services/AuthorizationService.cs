@@ -60,8 +60,8 @@ internal sealed class AuthorizationService : IAuthorizationService
             throw new AuthenticationException("Wrong username or password");
         }
 
-        var token = _jwtTokenGenerator.CreateToken(user);
+        var tokenResult = _jwtTokenGenerator.CreateToken(user);
 
-        return new LoginResponseDto(token);
+        return new LoginResponseDto(tokenResult.Token, tokenResult.ExpiresOn);
     }
 }

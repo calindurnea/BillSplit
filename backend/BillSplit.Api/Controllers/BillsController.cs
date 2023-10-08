@@ -6,38 +6,64 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace BillSplit.Api.Controllers;
 
+/// <inheritdoc />
 [Route("api/[controller]")]
 [ApiController]
-[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-[ProducesResponseType(StatusCodes.Status403Forbidden)]
+[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
 public class BillsController : ControllerBase
 {
     private readonly IBillService _billService;
 
+    /// <summary>
+    /// Provides functionality for managing bills
+    /// </summary>
+    /// <param name="billService"></param>
+    /// <exception cref="ArgumentNullException"></exception>
     public BillsController(IBillService billService)
     {
         _billService = billService ?? throw new ArgumentNullException(nameof(billService));
     }
 
-    [HttpGet("{id:long}", Name = nameof(GetBills))]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BillDto))]
-    public async Task<IActionResult> GetBills([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Returns the bill with the specified id
+    /// </summary>
+    /// <param name="id">The id of the bill</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>The bill if successful, an error otherwise</returns>
+    [HttpGet("{id:long}", Name = nameof(GetBillById))]
+    [ProducesResponseType(typeof(BillDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBillById([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
-        var billGroup = await _billService.GetBill(user, id, cancellationToken);
-        return Ok(billGroup);
+        var billDto = await _billService.GetBill(user, id, cancellationToken);
+        return Ok(billDto);
     }
 
+    /// <summary>
+    /// Creates or updates a bill if it already exists
+    /// </summary>
+    /// <param name="upsertBill">Bill to create or update</param>
+    /// <param name="cancellationToken"></param>
     [HttpPut(Name = nameof(UpsertBill))]
     [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpsertBill([BindRequired, FromBody] UpsertBillDto upsertBill, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
         var id = await _billService.UpsertBill(user, upsertBill, cancellationToken);
-        return CreatedAtAction(nameof(GetBills), new { id }, new { id });
+        return CreatedAtAction(nameof(GetBillById), new { id }, new { id });
     }
 
-    [HttpDelete("{id:long}")]
+    /// <summary>
+    /// Deletes a bill if the user is part of the group
+    /// </summary>
+    /// <param name="id">Id of the bill</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>No content if successful, an error otherwise</returns>
+    [HttpDelete("{id:long}", Name = nameof(DeleteBill))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteBill([BindRequired, FromRoute] long id, CancellationToken cancellationToken = default)
     {

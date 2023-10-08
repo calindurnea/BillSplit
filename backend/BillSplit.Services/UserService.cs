@@ -29,14 +29,14 @@ internal sealed class UserService : IUserService
             CreatedDate = DateTime.UtcNow
         });
 
-        if (result.Succeeded)
+        if (!result.Succeeded)
         {
-            var user = (await _userManager.FindByEmailAsync(request.Email)).ThrowIfNull();
-            return user.Id;
+            throw new UserCreationException("Request was not valid. Reason(s): " + string.Join(", ", result.Errors.Select(x => x.Description)));
         }
 
-        // TODO: fix this
-        throw new Exception(string.Join(", ", result.Errors));
+        var user = (await _userManager.FindByEmailAsync(request.Email)).ThrowIfNull();
+        return user.Id;
+
     }
 
     public async Task UpdateUser(long id, UpsertUserDto request)
@@ -68,13 +68,14 @@ internal sealed class UserService : IUserService
     {
         var users = (await _userManager.Users.Where(x => ids.Contains(x.Id)).ToListAsync(cancellationToken)).ThrowIfNull();
 
-        if (users.Count != ids.Count)
+        if (users.Count == ids.Count)
         {
-            var idsNotFound = ids.Where(id => users.Select(u => u.Id).All(uid => uid != id));
-            throw new NotFoundException(typeof(User), idsNotFound.ToArray());
+            return users.Select(MapToDto);
         }
 
-        return users.Select(MapToDto);
+        var idsNotFound = ids.Where(id => users.Select(u => u.Id).All(uid => uid != id));
+        throw new NotFoundException(typeof(User), idsNotFound.ToArray());
+
     }
 
     private static UserDto MapToDto(User entity)

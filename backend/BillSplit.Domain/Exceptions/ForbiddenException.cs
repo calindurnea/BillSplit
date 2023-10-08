@@ -10,7 +10,11 @@ public class ForbiddenException : Exception
 
     }
 
-    public ForbiddenException(long id) : base($"You cannot access entity with id: {id}")
+    public ForbiddenException(string message) : base(message)
+    {
+    }
+
+    public ForbiddenException(long id) : base($"You cannot access entity with id: '{id}'")
     {
     }
 }
