@@ -26,24 +26,27 @@ public class DefaultExceptionHandler : IExceptionHandler
         switch (exception)
         {
             case ForbiddenException:
+            case UnauthorizedAccessException:
+                httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 await httpContext.Response.WriteAsJsonAsync(BuildProblemDetails(httpContext, exception, HttpStatusCode.Forbidden), cancellationToken);
                 break;
             case InvalidBillAllocationSetupException:
             case UnsettledBillAllocationsException:
+                httpContext.Response.StatusCode = (int)HttpStatusCode.Conflict;
                 await httpContext.Response.WriteAsJsonAsync(BuildProblemDetails(httpContext, exception, HttpStatusCode.Conflict), cancellationToken);
                 break;
             case NotFoundException:
+                httpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
                 await httpContext.Response.WriteAsJsonAsync(BuildProblemDetails(httpContext, exception, HttpStatusCode.NotFound), cancellationToken);
                 break;
             case PasswordCheckException:
             case UserCreationException:
+                httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 await httpContext.Response.WriteAsJsonAsync(BuildProblemDetails(httpContext, exception, HttpStatusCode.BadRequest), cancellationToken);
                 break;
             case AuthenticationException:
+                httpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 await httpContext.Response.WriteAsJsonAsync(BuildProblemDetails(httpContext, exception, HttpStatusCode.Unauthorized), cancellationToken);
-                break;
-            case UnauthorizedAccessException:
-                await httpContext.Response.WriteAsJsonAsync(BuildProblemDetails(httpContext, exception, HttpStatusCode.Forbidden), cancellationToken);
                 break;
             default:
                 await httpContext.Response.WriteAsJsonAsync(BuildProblemDetails(httpContext, exception, HttpStatusCode.InternalServerError), cancellationToken);
