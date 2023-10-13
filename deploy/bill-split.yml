@@ -12,7 +12,7 @@ services:
     restart: always
     environment:
       # Server - Framework settings
-      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
       - ASPNETCORE_URLS=http://+:80;
       - ASPNETCORE_ENVIRONMENT=Production
       # Server - Application settings
