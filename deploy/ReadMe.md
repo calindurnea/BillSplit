@@ -1,12 +1,10 @@
 Run from repo root:
 
-- docker compose -f deploy/ENV.docker-compose.yml up -d
+# Local
 
-For local build you can add --build --force-recreate also
+- docker compose -p bill-split-local -f deploy/bill-split.local.yml up -d
+- docker compose -p bill-split-local -f deploy/bill-split.local.yml up --build --force-recreate -d
 
-- docker compose -f deploy/local.docker-compose.yml up --build --force-recreate -d
+# Prod
 
-Known ENVs:
-
-- docker compose -f deploy/local.docker-compose.yml up -d
-- docker compose -f deploy/prod.docker-compose.yml up -d
+- docker compose -p bill-split -f deploy/bill-split.yml up -d

@@ -14,10 +14,7 @@ services:
       - ASPNETCORE_URLS=http://+:80;
       - ASPNETCORE_ENVIRONMENT=Production
       # Server - Application settings
-      - ConnectionStrings__ApplicationContext=host=postgresql;port=5432;database=bill_split_api;username=postgres;password=Pass@word
-      # - Jwt_Issuer=
-      # - Jwt_Audience=
-      # - Jwt_Key=
+      - ConnectionStrings__ApplicationContext=host=postgresql;port=5432;database=bill_split_db;username=postgres;password=Pass@word
     ports:
       - "5003:80"
     depends_on:
@@ -32,6 +29,6 @@ services:
       - POSTGRES_PASSWORD=Pass@word
       - POSTGRES_DB=bill_split_db
     ports:
-      - "5432:5432"
+      - "8002:5432"
     volumes:
-      - ./production/postgresql_data:/var/lib/postgresql/data
+      - ./local/postgresql_data:/var/lib/postgresql/data
