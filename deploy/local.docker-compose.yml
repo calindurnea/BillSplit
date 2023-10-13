@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  bill_split_api:
+    container_name: bill_split_api_local
+    build:
+      context: ./../backend/
+      dockerfile: ./../deploy/docker/Api.Dockerfile
+    pull_policy: always
+    restart: always
+    environment:
+      # Server - Framework settings
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
+      - ASPNETCORE_URLS=http://+:80;
+      - ASPNETCORE_ENVIRONMENT=Production
+      # Server - Application settings
+      - ConnectionStrings__ApplicationContext=host=postgresql;port=5432;database=bill_split_api;username=postgres;password=Pass@word
+      # - Jwt_Issuer=
+      # - Jwt_Audience=
+      # - Jwt_Key=
+    ports:
+      - "5003:80"
+    depends_on:
+      - postgresql
+
+  postgresql:
+    container_name: postgresql_local
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Pass@word
+      - POSTGRES_DB=bill_split_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./production/postgresql_data:/var/lib/postgresql/data

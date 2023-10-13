@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <ContainerImageName>billsplit-api-image</ContainerImageName>
-    <PublishProfile>DefaultContainer</PublishProfile>
     <UserSecretsId>f892d73d-65d5-40f7-9a94-91ecdc551303</UserSecretsId>
   </PropertyGroup>
 

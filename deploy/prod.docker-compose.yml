@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  bill_split_api:
+    container_name: bill_split_api
+    image: calinka/bill_split:api
+    pull_policy: always
+    restart: always
+    environment:
+      # Server - Framework settings
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
+      - ASPNETCORE_URLS=http://+:80;
+      - ASPNETCORE_ENVIRONMENT=Production
+      # Server - Application settings
+      - ConnectionStrings__ApplicationContext=Server=sql_data;Database=atm_tool_db;User=sa;Password=Pass@word;TrustServerCertificate=true
+      # - Jwt_Issuer=
+      # - Jwt_Audience=
+      # - Jwt_Key=
+    ports:
+      - "5003:80"
+    depends_on:
+      - postgresql
+
+  postgresql_data:
+    container_name: postgresql
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Pass@word
+      - POSTGRES_DB=atm_tool_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./production/postgresql_data:/var/lib/postgresql/data
