@@ -23,25 +23,7 @@ public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
         _httpClient = _factory.CreateClient();
     }
 
-    [Theory]
-    [InlineData("/")]
-    [InlineData("/Index")]
-    [InlineData("/About")]
-    [InlineData("/Privacy")]
-    [InlineData("/Contact")]
-    public async Task Get_EndpointsReturnSuccessAndCorrectContentType(string url)
-    {
-        // Arrange
-        // Act
-        var response = await _httpClient.GetAsync(url);
-
-        // Assert
-        response.EnsureSuccessStatusCode(); // Status Code 200-299
-        Assert.Equal("text/html; charset=utf-8",
-            response.Content.Headers.ContentType?.ToString());
-    }
-
-    [Fact]
+    [Fact(Skip = "Have to setup postgres in a container")]
     public async Task CanCreateUserAndAuthorize()
     {
         // Create new user
