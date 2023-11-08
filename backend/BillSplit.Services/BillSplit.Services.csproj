@@ -6,6 +6,7 @@
     <ProjectReference Include="..\BillSplit.Contracts\BillSplit.Contracts.csproj" />
     <ProjectReference Include="..\BillSplit.Domain\BillSplit.Domain.csproj" />
     <ProjectReference Include="..\BillSplit.Infrastructure\BillSplit.Persistence.csproj" />
+    <ProjectReference Include="..\BillSplit.Persistence.Caching\BillSplit.Persistence.Caching.csproj" />
     <ProjectReference Include="..\BillSplit.Services.Abstractions\BillSplit.Services.Abstractions.csproj" />
   </ItemGroup>
 </Project>

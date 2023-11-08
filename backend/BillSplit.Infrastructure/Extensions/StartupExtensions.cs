@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BillSplit.Persistence;
+namespace BillSplit.Persistence.Extensions;
 
 public static class ServiceCollectionExtensions
 {

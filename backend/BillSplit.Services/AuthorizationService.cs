@@ -4,6 +4,7 @@ using System.Security.Claims;
 using BillSplit.Contracts.Authorization;
 using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
+using BillSplit.Persistence.Caching;
 using BillSplit.Services.Abstractions.Interfaces;
 using BillSplit.Services.Extensions;
 using Microsoft.AspNetCore.Identity;
@@ -14,11 +15,16 @@ internal sealed class AuthorizationService : IAuthorizationService
 {
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly UserManager<User> _userManager;
+    private readonly ICacheManger _cacheManger;
 
-    public AuthorizationService(IJwtTokenGenerator jwtTokenGenerator, UserManager<User> userManager)
+    public AuthorizationService(
+        IJwtTokenGenerator jwtTokenGenerator,
+        UserManager<User> userManager,
+        ICacheManger cacheManger)
     {
         _jwtTokenGenerator = jwtTokenGenerator ?? throw new ArgumentNullException(nameof(jwtTokenGenerator));
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+        _cacheManger = cacheManger ?? throw new ArgumentNullException(nameof(cacheManger));
     }
 
     public async Task SetInitialPassword(SetInitialPasswordDto request)
@@ -62,6 +68,16 @@ internal sealed class AuthorizationService : IAuthorizationService
 
         var tokenResult = _jwtTokenGenerator.CreateToken(user);
 
+        _cacheManger.SetData(
+            "authorization:logged:users:" + user.Id,
+            user.Id.ToString(CultureInfo.InvariantCulture),
+            TimeSpan.FromMinutes(5));
+
         return new LoginResponseDto(tokenResult.Token, tokenResult.ExpiresOn);
+    }
+
+    public Task Logout(long userId)
+    {
+        return Task.FromResult(_cacheManger.RemoveData("authorization:logged:users:" + userId));
     }
 }

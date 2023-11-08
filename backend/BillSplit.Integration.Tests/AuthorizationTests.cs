@@ -54,7 +54,7 @@ public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginResponseBody.Token);
         var currentUserResponse = await _httpClient.GetAsync("/api/users/current");
         Assert.Equal(HttpStatusCode.OK, currentUserResponse.StatusCode);
-        
+
         var currentUserResponseBody = await currentUserResponse.Content.ReadFromJsonAsync<UserDto>();
         var expectedUser = new UserDto(parsedUserId, user.Email, user.Name, user.PhoneNumber);
         Assert.Equal(expectedUser, currentUserResponseBody);
@@ -69,7 +69,7 @@ public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
         // Get current user info with the old token
         // var oldTokenCurrentUserResponse = await _httpClient.GetAsync("/api/users/current");
         // Assert.Equal(HttpStatusCode.Unauthorized, oldTokenCurrentUserResponse.StatusCode);
-        
+
         // Login with new password user
         var newLoginRequestDto = new LoginRequestDto(user.Email, newPassword);
         var newLoginResponse = await _httpClient.PostAsJsonAsync("/api/authorization/login", newLoginRequestDto);
@@ -85,6 +85,6 @@ public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
 
         var newCurrentUserResponseBody = await newCurrentUserResponse.Content.ReadFromJsonAsync<UserDto>();
         Assert.Equal(expectedUser, newCurrentUserResponseBody);
-        
+
     }
 }

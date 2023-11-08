@@ -1,7 +1,10 @@
 using System.Security.Claims;
+using BillSplit.Api.AuthorizationPolicies;
 using BillSplit.Api.Extensions;
 using BillSplit.Domain;
 using BillSplit.Persistence;
+using BillSplit.Persistence.Caching;
+using BillSplit.Persistence.Extensions;
 using BillSplit.Services.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -25,6 +28,8 @@ public class Startup
     {
         services.AddControllers(options => { options.Filters.Add(new ProducesAttribute("application/json")); });
 
+        services.AddScoped<IAuthorizationHandler, LoggedInAuthorizationHandler>();
+
         services.AddEndpointsApiExplorer()
             .ConfigureSwagger()
             .AddInfrastructure(Configuration)
@@ -32,11 +37,13 @@ public class Startup
             .AddRepositories()
             .AddValidators()
             // .AddOutputCache();
+            .AddPersistentCaching(Configuration)
             .ConfigureAuthentication(Configuration)
             .AddAuthorization(options =>
             {
-                options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                options.DefaultPolicy = new AuthorizationPolicyBuilder()
                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                    .AddRequirements(new LoggedInAuthorizationRequirement())
                     .RequireAuthenticatedUser()
                     .RequireClaim(ClaimTypes.Email)
                     .RequireClaim(ClaimTypes.NameIdentifier)
@@ -50,17 +57,17 @@ public class Startup
     {
         // if (env.IsDevelopment())
         // {
-            app.UseSwagger();
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-                options.RoutePrefix = "swagger";
-                options.DisplayOperationId();
-                options.DisplayRequestDuration();
-            });
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+            options.RoutePrefix = "swagger";
+            options.DisplayOperationId();
+            options.DisplayRequestDuration();
+        });
 
-            app.UseDeveloperExceptionPage();
-            app.SeedData();
+        app.UseDeveloperExceptionPage();
+        app.SeedData();
         // }
         // else
         // {
