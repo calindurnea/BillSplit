@@ -22,6 +22,7 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
             .WithUsername("billsplit-admin")
             .WithImage("postgres:latest")
             .WithCleanUp(true)
+            .WithPortBinding(5432)
             .Build();
 
         redisContainer.StartAsync().Wait();
