@@ -4,6 +4,7 @@ using BillSplit.Persistence.Repositories.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,8 +24,13 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<BillsplitContext>(options => options.UseNpgsql(configuration.GetConnectionString("ApplicationContext"),
-            x => x.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "billsplit")));
+        services.AddDbContext<BillsplitContext>(options =>
+        {
+            options.ConfigureWarnings(builder => builder.Ignore(CoreEventId.MultipleNavigationProperties));
+            options.UseNpgsql(
+                configuration.GetConnectionString("ApplicationContext"),
+                x => x.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "billsplit"));
+        });
         services.AddScoped<IApplicationDbContext, BillsplitContext>();
 
         services.AddSingleton<DbInitializer>();
