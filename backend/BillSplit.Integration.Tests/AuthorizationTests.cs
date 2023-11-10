@@ -6,24 +6,21 @@ using AutoFixture;
 using BillSplit.Api;
 using BillSplit.Contracts.Authorization;
 using BillSplit.Contracts.User;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace BillSplit.Integration.Tests;
 
 [SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores")]
-public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
+public class AuthorizationTests : IClassFixture<CustomWebApplicationFactory<Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _httpClient;
     private readonly Fixture _fixture = new();
 
-    public AuthorizationTests(WebApplicationFactory<Program> factory)
+    public AuthorizationTests(CustomWebApplicationFactory<Program> factory)
     {
-        _factory = factory;
-        _httpClient = _factory.CreateClient();
+        _httpClient = factory.CreateClient();
     }
 
-    [Fact(Skip = "Have to setup postgres in a container")]
+    [Fact]
     public async Task CanCreateUserAndAuthorize()
     {
         // Create new user
@@ -54,7 +51,7 @@ public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginResponseBody.Token);
         var currentUserResponse = await _httpClient.GetAsync("/api/users/current");
         Assert.Equal(HttpStatusCode.OK, currentUserResponse.StatusCode);
-        
+
         var currentUserResponseBody = await currentUserResponse.Content.ReadFromJsonAsync<UserDto>();
         var expectedUser = new UserDto(parsedUserId, user.Email, user.Name, user.PhoneNumber);
         Assert.Equal(expectedUser, currentUserResponseBody);
@@ -65,11 +62,10 @@ public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
         var updatePasswordResponse = await _httpClient.PutAsJsonAsync("/api/authorization/password", updatePasswordDto);
         Assert.Equal(HttpStatusCode.NoContent, updatePasswordResponse.StatusCode);
 
-        // TODO: invalidate the previously created token somehow maybe?
         // Get current user info with the old token
-        // var oldTokenCurrentUserResponse = await _httpClient.GetAsync("/api/users/current");
-        // Assert.Equal(HttpStatusCode.Unauthorized, oldTokenCurrentUserResponse.StatusCode);
-        
+        var oldTokenCurrentUserResponse = await _httpClient.GetAsync("/api/users/current");
+        Assert.Equal(HttpStatusCode.Forbidden, oldTokenCurrentUserResponse.StatusCode);
+
         // Login with new password user
         var newLoginRequestDto = new LoginRequestDto(user.Email, newPassword);
         var newLoginResponse = await _httpClient.PostAsJsonAsync("/api/authorization/login", newLoginRequestDto);
@@ -86,5 +82,12 @@ public class AuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
         var newCurrentUserResponseBody = await newCurrentUserResponse.Content.ReadFromJsonAsync<UserDto>();
         Assert.Equal(expectedUser, newCurrentUserResponseBody);
         
+        // Logout
+        var logoutResponse = await _httpClient.PostAsync("/api/authorization/logout", null);
+        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        
+        // Get current user info with the logged out token
+        var currentUserAfterLogoutResponse = await _httpClient.GetAsync("/api/users/current");
+        Assert.Equal(HttpStatusCode.Forbidden, currentUserAfterLogoutResponse.StatusCode);
     }
 }

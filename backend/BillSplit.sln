@@ -20,6 +20,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
 		NuGet.Config = NuGet.Config
+		..\deploy\bill-split.local.yml = ..\deploy\bill-split.local.yml
+		..\deploy\bill-split.yml = ..\deploy\bill-split.yml
+		..\deploy\ReadMe.md = ..\deploy\ReadMe.md
+		..\deploy\docker\Api.Dockerfile = ..\deploy\docker\Api.Dockerfile
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BillSplit.Contracts", "BillSplit.Contracts\BillSplit.Contracts.csproj", "{0846822A-75CF-42C3-BB88-0753EFD63880}"
@@ -33,6 +37,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{4238F370-60C0-4C5D-A039-440D0CBD9F35}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillSplit.Integration.Tests", "BillSplit.Integration.Tests\BillSplit.Integration.Tests.csproj", "{458F6A31-B827-4C84-8BFE-69B4378AB8C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BillSplit.Persistence.Caching", "BillSplit.Persistence.Caching\BillSplit.Persistence.Caching.csproj", "{71A63662-5EC4-4805-A4D5-5D9BA2DFF411}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -68,6 +74,10 @@ Global
 		{458F6A31-B827-4C84-8BFE-69B4378AB8C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{458F6A31-B827-4C84-8BFE-69B4378AB8C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{458F6A31-B827-4C84-8BFE-69B4378AB8C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71A63662-5EC4-4805-A4D5-5D9BA2DFF411}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71A63662-5EC4-4805-A4D5-5D9BA2DFF411}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71A63662-5EC4-4805-A4D5-5D9BA2DFF411}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71A63662-5EC4-4805-A4D5-5D9BA2DFF411}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,6 +90,7 @@ Global
 		{D0C46D44-73A5-44DC-9E72-14DFFBD34A88} = {B284D715-E9B6-4A84-A2ED-3BB8BF209486}
 		{8DB14DE6-3449-4D60-B795-C9D0CCEDD51C} = {B284D715-E9B6-4A84-A2ED-3BB8BF209486}
 		{458F6A31-B827-4C84-8BFE-69B4378AB8C0} = {57B67788-5B74-4CC9-A101-324E03AA4F3D}
+		{71A63662-5EC4-4805-A4D5-5D9BA2DFF411} = {4238F370-60C0-4C5D-A039-440D0CBD9F35}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5888D0E1-1251-47E7-ACDF-4E3158276395}

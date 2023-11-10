@@ -1,6 +1,7 @@
 ﻿using BillSplit.Api.Extensions;
 using BillSplit.Contracts.BillGroup;
 using BillSplit.Services.Abstractions.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 

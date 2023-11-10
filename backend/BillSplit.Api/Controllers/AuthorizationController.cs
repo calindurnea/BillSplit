@@ -1,4 +1,5 @@
-﻿using BillSplit.Contracts.Authorization;
+﻿using BillSplit.Api.Extensions;
+using BillSplit.Contracts.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -71,13 +72,13 @@ public class AuthorizationController : ControllerBase
     }
 
     /// <summary>
-    /// Not implemented
+    /// Logs out user
     /// </summary>
-    /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
     [HttpPost("logout", Name = nameof(Logout))]
-    public Task Logout()
+    public async Task Logout()
     {
-        throw new NotImplementedException();
+        var user = HttpContext.User.GetCurrentUser();
+        await _authorizationService.Logout(user.Id);
     }
 }
