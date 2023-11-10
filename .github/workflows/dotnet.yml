@@ -2,17 +2,19 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
 name: Build and test .NET
-
+#  pull_request:
+#  push:
+#    branches:
+#      - main
+#      - master
 on:
-  push:
-    branches: [ "main" ]
-    paths: 
-      - "backend/"
-  pull_request:
-    branches: [ "main" ]
-    paths: 
-      - "backend/"
   workflow_dispatch:
+  push:
+  pull_request:
+    branches: 
+      - main
+    paths: 
+      - "backend/"
 
 jobs:
   build:
