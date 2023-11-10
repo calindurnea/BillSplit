@@ -48,6 +48,7 @@ internal sealed class AuthorizationService : IAuthorizationService
         var user = (await _userManager.GetUserAsync(principal)).ThrowIfNull();
 
         await _userManager.ChangePasswordAsync(user, request.Password, request.NewPassword);
+        await Logout(user.Id);
     }
 
     public async Task<LoginResponseDto> Login(LoginRequestDto request)
