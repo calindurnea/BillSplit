@@ -8,24 +8,12 @@ import {
   Scripts,
   ScrollRestoration,
   json,
-  useRouteLoaderData,
 } from '@remix-run/react'
 import styles from './globals.css'
+import {useTheme} from './routes/action.set-theme'
 import {ClientHintCheck, getHints} from './utils/client-hints'
 import {useNonce} from './utils/nonce-provider'
 import {getTheme} from './utils/theme.server'
-
-/**
- * @returns the user's theme preference, or the client hint theme if the user
- * has not set a preference.
- */
-export function useTheme() {
-  const data = useRouteLoaderData<typeof loader>('root')
-  if (!data) {
-    throw new Error('No data found for root route')
-  }
-  return data.requestInfo.userPrefs.theme ?? data.requestInfo.hints.theme
-}
 
 export function links() {
   return [

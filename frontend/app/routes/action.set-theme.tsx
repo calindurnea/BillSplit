@@ -1,5 +1,5 @@
 import {type ActionFunctionArgs, json} from '@remix-run/node'
-import {useFetcher} from '@remix-run/react'
+import {useFetcher, useRouteLoaderData} from '@remix-run/react'
 import {MoonIcon, SunIcon} from 'lucide-react'
 import {Button} from '~/components/ui/button'
 import {
@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import type {loader as rootLoader} from '~/root'
 import {type Theme, isValidTheme, setTheme} from '~/utils/theme.server'
 
 export async function action({request}: ActionFunctionArgs) {
@@ -20,6 +21,18 @@ export async function action({request}: ActionFunctionArgs) {
   }
 
   return json({success: true}, {headers: {'Set-Cookie': setTheme(theme)}})
+}
+
+/**
+ * @returns the user's theme preference, or the client hint theme if the user
+ * has not set a preference.
+ */
+export function useTheme() {
+  const data = useRouteLoaderData<typeof rootLoader>('root')
+  if (!data) {
+    throw new Error('No data found for root route')
+  }
+  return data.requestInfo.userPrefs.theme ?? data.requestInfo.hints.theme
 }
 
 export function ThemeSwitch() {
