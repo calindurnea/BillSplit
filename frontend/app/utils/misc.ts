@@ -6,8 +6,3 @@ export function useRequestInfo() {
   if (!data) throw new Error('Missing request info')
   return data.requestInfo
 }
-
-export function useHints() {
-  const requestInfo = useRequestInfo()
-  return requestInfo.hints
-}

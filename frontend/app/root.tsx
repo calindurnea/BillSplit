@@ -1,5 +1,5 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
-import {LoaderFunctionArgs, json} from '@remix-run/node'
+import type {LoaderFunctionArgs} from '@remix-run/node'
 import {
   Links,
   LiveReload,
@@ -7,12 +7,13 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  json,
 } from '@remix-run/react'
 import styles from './globals.css'
 import {ClientHintCheck, getHints, useHints} from './utils/client-hints'
+import {useRequestInfo} from './utils/misc'
 import {useNonce} from './utils/nonce-provider'
 import {getTheme} from './utils/theme.server'
-import {useRequestInfo} from './utils/misc'
 
 /**
  * @returns the user's theme preference, or the client hint theme if the user

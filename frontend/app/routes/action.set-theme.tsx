@@ -1,4 +1,4 @@
-import {ActionFunctionArgs, json} from '@remix-run/node'
+import {type ActionFunctionArgs, json} from '@remix-run/node'
 import {useFetcher} from '@remix-run/react'
 import {MoonIcon, SunIcon} from 'lucide-react'
 import {Button} from '~/components/ui/button'
@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import {Theme, isValidTheme, setTheme} from '~/utils/theme.server'
+import {type Theme, isValidTheme, setTheme} from '~/utils/theme.server'
 
 export async function action({request}: ActionFunctionArgs) {
   const requestText = await request.text()
