@@ -8,10 +8,10 @@ import {
   Scripts,
   ScrollRestoration,
   json,
+  useRouteLoaderData,
 } from '@remix-run/react'
 import styles from './globals.css'
-import {ClientHintCheck, getHints, useHints} from './utils/client-hints'
-import {useRequestInfo} from './utils/misc'
+import {ClientHintCheck, getHints} from './utils/client-hints'
 import {useNonce} from './utils/nonce-provider'
 import {getTheme} from './utils/theme.server'
 
@@ -20,9 +20,11 @@ import {getTheme} from './utils/theme.server'
  * has not set a preference.
  */
 export function useTheme() {
-  const hints = useHints()
-  const requestInfo = useRequestInfo()
-  return requestInfo.userPrefs.theme ?? hints.theme
+  const data = useRouteLoaderData<typeof loader>('root')
+  if (!data) {
+    throw new Error('No data found for root route')
+  }
+  return data.requestInfo.userPrefs.theme ?? data.requestInfo.hints.theme
 }
 
 export function links() {

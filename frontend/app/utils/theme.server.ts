@@ -10,13 +10,12 @@ export function isValidTheme(value: unknown): value is Theme {
 const cookieName = 'theme'
 
 /** @returns the cookie value set by server (`undefined` if theme is system) */
-export function getTheme(request: Request) {
+export function getTheme(
+  request: Request,
+): Exclude<Theme, 'system'> | undefined {
   const cookieHeader = request.headers.get('Cookie')
   const parsed = cookieHeader && cookie.parse(cookieHeader)[cookieName]
-
   if (parsed === 'light' || parsed === 'dark') return parsed
-
-  return
 }
 
 /** Parses the cookie value */

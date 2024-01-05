@@ -5,16 +5,9 @@ import {
 } from '@epic-web/client-hints/color-scheme'
 import {useRevalidator} from '@remix-run/react'
 import * as React from 'react'
-import {useRequestInfo} from './misc'
 
 const hintsUtils = getHintUtils({theme: colorSchemeHint})
 export const {getHints} = hintsUtils
-
-/** @returns an object with the client hints and their values */
-export function useHints() {
-  const requestInfo = useRequestInfo()
-  return requestInfo.hints
-}
 
 /**
  * @returns inline script element that checks for client hints and sets cookies
