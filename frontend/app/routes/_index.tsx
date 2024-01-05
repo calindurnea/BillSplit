@@ -1,3 +1,5 @@
+import {ThemeSwitch} from './action.set-theme'
+
 export function meta() {
   return [
     {title: 'BillSplit'},
@@ -8,6 +10,7 @@ export function meta() {
 export default function Index() {
   return (
     <div>
+      <ThemeSwitch />
       <h1>Hello world!</h1>
     </div>
   )
