@@ -13,7 +13,7 @@ COPY ["BillSplit.Api/BillSplit.Api.csproj", "BillSplit.Api/"]
 COPY ["BillSplit.Contracts/BillSplit.Contracts.csproj", "BillSplit.Contracts/"]
 COPY ["BillSplit.Domain/BillSplit.Domain.csproj", "BillSplit.Domain/"]
 COPY ["BillSplit.Infrastructure/BillSplit.Persistence.csproj", "BillSplit.Infrastructure/"]
-COPY ["BillSplit.Infrastructure/BillSplit.Persistence.Caching.csproj", "BillSplit.Infrastructure/"]
+COPY ["BillSplit.Persistence.Caching/BillSplit.Persistence.Caching.csproj", "BillSplit.Persistence.Caching/"]
 COPY ["BillSplit.Services/BillSplit.Services.csproj", "BillSplit.Services/"]
 COPY ["BillSplit.Services.Abstractions/BillSplit.Services.Abstractions.csproj", "BillSplit.Services.Abstractions/"]
 
