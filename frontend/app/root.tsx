@@ -1,5 +1,5 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
-import type {LoaderFunctionArgs} from '@remix-run/node'
+import type {LoaderFunctionArgs, MetaDescriptor} from '@remix-run/node'
 import {
   Links,
   LiveReload,
@@ -10,7 +10,7 @@ import {
   json,
 } from '@remix-run/react'
 import styles from './globals.css'
-import {useTheme} from './routes/action.set-theme'
+import {ThemeSwitch, useTheme} from './routes/action.set-theme'
 import {ClientHintCheck, getHints} from './utils/client-hints'
 import {useNonce} from './utils/nonce-provider'
 import {getTheme} from './utils/theme.server'
@@ -19,6 +19,13 @@ export function links() {
   return [
     {rel: 'stylesheet', href: styles},
     ...(cssBundleHref ? [{rel: 'stylesheet', href: cssBundleHref}] : []),
+  ]
+}
+
+export function meta(): Array<MetaDescriptor> {
+  return [
+    {title: 'BillSplit'},
+    {name: 'description', content: 'Welcome to BillSplit'},
   ]
 }
 
@@ -47,6 +54,7 @@ export default function App() {
         <Links />
       </head>
       <body className="bg-background text-foreground">
+        <ThemeSwitch />
         <Outlet />
         <ScrollRestoration />
         <Scripts />
