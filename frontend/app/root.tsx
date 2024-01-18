@@ -24,12 +24,8 @@ export function links() {
 
 export async function loader({request}: LoaderFunctionArgs) {
   return json({
-    requestInfo: {
-      hints: getHints(request),
-      userPrefs: {
-        theme: getTheme(request),
-      },
-    },
+    hints: getHints(request),
+    theme: getTheme(request),
   })
 }
 

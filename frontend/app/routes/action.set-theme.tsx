@@ -1,5 +1,5 @@
-import {type ActionFunctionArgs, json} from '@remix-run/node'
-import {useFetcher, useRouteLoaderData} from '@remix-run/react'
+import {json, type ActionFunctionArgs} from '@remix-run/node'
+import {useFetcher, useFetchers, useRouteLoaderData} from '@remix-run/react'
 import {MoonIcon, SunIcon} from 'lucide-react'
 import {Button} from '~/components/ui/button'
 import {
@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import type {loader as rootLoader} from '~/root'
-import {type Theme, isValidTheme, setTheme} from '~/utils/theme.server'
+import {isValidTheme, setTheme, type Theme} from '~/utils/theme.server'
 
 export async function action({request}: ActionFunctionArgs) {
   const requestText = await request.text()
@@ -24,22 +24,31 @@ export async function action({request}: ActionFunctionArgs) {
 }
 
 /**
- * @returns the user's theme preference, or the client hint theme if the user
+ * @returns (optimistically) the user's theme preference, or the client hint theme if the user
  * has not set a preference.
  */
 export function useTheme() {
   const data = useRouteLoaderData<typeof rootLoader>('root')
-  if (!data) {
-    throw new Error('No data found for root route')
+  if (!data) throw new Error('No data found for root route')
+
+  const fetchers = useFetchers()
+  const themeFetcher = fetchers.find(f => f.formAction === '/action/set-theme')
+  const optimisticTheme = themeFetcher?.formData?.get('theme')
+
+  if (optimisticTheme === 'light' || optimisticTheme === 'dark') {
+    return optimisticTheme
   }
-  return data.requestInfo.userPrefs.theme ?? data.requestInfo.hints.theme
+
+  return data.theme ?? data.hints.theme
 }
+
+export function useOptimisticThemeMode() {}
 
 export function ThemeSwitch() {
   const fetcher = useFetcher()
 
   function handleThemeChange(theme: Theme) {
-    fetcher.submit({theme}, {method: 'post', action: 'action/set-theme'})
+    fetcher.submit({theme}, {method: 'post', action: '/action/set-theme'})
   }
 
   return (
