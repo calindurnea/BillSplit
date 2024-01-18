@@ -55,7 +55,9 @@ export default function App() {
       </head>
       <body className="bg-background text-foreground">
         <ThemeSwitch />
-        <Outlet />
+        <main className="p-6">
+          <Outlet />
+        </main>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
