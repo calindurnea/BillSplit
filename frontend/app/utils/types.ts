@@ -1,5 +1,9 @@
 import {z} from 'zod'
 
+export const entitySchema = z.object({
+  id: z.coerce.number(),
+})
+
 export const knownErrorSchema = z.object({
   type: z.string(),
   title: z.string(),
