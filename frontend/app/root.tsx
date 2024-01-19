@@ -1,6 +1,7 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
 import type {LoaderFunctionArgs, MetaDescriptor} from '@remix-run/node'
 import {
+  Link,
   Links,
   LiveReload,
   Meta,
@@ -9,7 +10,9 @@ import {
   ScrollRestoration,
   json,
 } from '@remix-run/react'
+import {Button} from './components/ui/button'
 import styles from './globals.css'
+import {cn} from './lib/utils'
 import {ThemeSwitch, useTheme} from './routes/action.set-theme'
 import {ClientHintCheck, getHints} from './utils/client-hints'
 import {useNonce} from './utils/nonce-provider'
@@ -37,11 +40,42 @@ export async function loader({request}: LoaderFunctionArgs) {
 }
 
 export default function App() {
+  return (
+    <Document>
+      <main className="flex flex-1 flex-col p-6">
+        <Outlet />
+      </main>
+      <ScrollRestoration />
+      <Scripts />
+      <LiveReload />
+    </Document>
+  )
+}
+
+export function ErrorBoundary() {
+  return (
+    <Document>
+      <main className="flex flex-1 flex-col items-center justify-center">
+        <div>
+          <h1 className="text-5xl font-bold">Oops!</h1>
+          <p className="my-4 text-xl text-muted-foreground">
+            An error occurred. Please try again later.
+          </p>
+          <Link to="/">
+            <Button variant="secondary">Back to home</Button>
+          </Link>
+        </div>
+      </main>
+    </Document>
+  )
+}
+
+function Document({children}: {children: React.ReactNode}) {
   const theme = useTheme()
   const nonce = useNonce()
 
   return (
-    <html lang="en" className={theme}>
+    <html lang="en" className={cn(theme, 'h-full')}>
       <head>
         <ClientHintCheck nonce={nonce} />
         <meta charSet="utf-8" />
@@ -53,14 +87,9 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="bg-background text-foreground">
+      <body className="flex h-full flex-col bg-background text-foreground">
         <ThemeSwitch />
-        <main className="p-6">
-          <Outlet />
-        </main>
-        <ScrollRestoration />
-        <Scripts />
-        <LiveReload />
+        {children}
       </body>
     </html>
   )
