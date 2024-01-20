@@ -24,11 +24,33 @@ export const {getSession, commitSession, destroySession} =
     },
   })
 
-class AuthorizationError extends Error {
+class AuthenticationError extends Error {
   constructor(message: string) {
     super(message)
-    this.name = 'ValidationError'
+    this.name = 'AuthenticationError'
   }
+}
+
+export async function authFetch(
+  token: string,
+  url: string,
+  init?: RequestInit,
+) {
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      ...init?.headers,
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  // Token might still be around, but not valid anymore
+  if (response.status === 401 || response.status === 403) {
+    throw redirect('/login')
+  }
+
+  return response
 }
 
 export async function authenticate(request: Request) {
@@ -40,12 +62,12 @@ export async function authenticate(request: Request) {
 
     if (!accessToken) throw redirect('/login')
     if (expiresOn && new Date(expiresOn) < new Date()) {
-      throw new AuthorizationError('Expired')
+      throw new AuthenticationError('Expired')
     }
 
     return accessToken
   } catch (error) {
-    if (error instanceof AuthorizationError) {
+    if (error instanceof AuthenticationError) {
       console.error('Session expired, destroying session')
       await destroySession(session)
       throw redirect('/login') // TODO: (gonza) - Remove this when refresh token is implemented
