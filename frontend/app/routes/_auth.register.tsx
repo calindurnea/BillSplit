@@ -118,21 +118,6 @@ export async function action({request}: ActionFunctionArgs) {
           'Set-Cookie': await commitSession(session),
         },
       })
-      // const response = await fetch(
-      //   'http://localhost:5003/api/Authorization/login',
-      //   {
-      //     method: 'POST',
-      //     body: JSON.stringify({
-      //       email: body.email,
-      //       password: body.password,
-      //     }),
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //     },
-      //   },
-      // )
-      // const data = await response.json()
-      // return json({type: 'passwordSuccess' as const})
     }
 
     if (KNWON_PASSWORD_ERROR_STATUS.includes(response.status)) {
