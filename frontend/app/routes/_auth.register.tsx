@@ -155,12 +155,9 @@ export async function loader({request}: LoaderFunctionArgs) {
   return json({...parsedUser})
 }
 
-export default function Register() {
-  const {userId, email} = useLoaderData<typeof loader>()
+export default function RegisterPage() {
+  const {userId} = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-  const navigation = useNavigation()
-  const isRegisterFormInvalid = actionData?.type === 'registerFormError'
-  const isPasswordFormInvalid = actionData?.type === 'passwordFormError'
   const isResponseError = actionData?.type === 'responseError'
   const isRegisterSuccess = Boolean(userId)
 
@@ -185,109 +182,7 @@ export default function Register() {
         </div>
       ) : null}
 
-      {isRegisterSuccess ? (
-        <Form method="post">
-          <input type="hidden" value={userId} name="userId" />
-          <input type="hidden" value={email} name="email" />
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" name="password" type="password" />
-            {isPasswordFormInvalid &&
-            actionData?.error.fieldErrors?.password ? (
-              <p className="text-sm text-red-500">
-                {actionData.error.fieldErrors.password[0]}
-              </p>
-            ) : null}
-          </div>
-          <div className="mt-4 flex flex-col gap-2">
-            <Label htmlFor="passwordCheck">Repeat password</Label>
-            <Input id="passwordCheck" name="passwordCheck" type="password" />
-            <div>
-              {isPasswordFormInvalid &&
-              actionData?.error.fieldErrors?.password ? (
-                <p className="text-sm text-red-500">
-                  {actionData.error.fieldErrors.password[0]}
-                </p>
-              ) : null}
-              {isPasswordFormInvalid && actionData.error.formErrors ? (
-                <p className="text-sm text-red-500">
-                  {actionData.error.formErrors[0]}
-                </p>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="mt-4 flex items-center gap-2">
-            <Button
-              className="flex-1"
-              variant="outline"
-              name="intent"
-              value="destroy"
-              type="submit"
-            >
-              Register
-            </Button>
-            <Button
-              className="flex-1"
-              type="submit"
-              name="intent"
-              value="password"
-            >
-              Set password
-            </Button>
-          </div>
-        </Form>
-      ) : (
-        <Form method="post">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" placeholder="John Doe" />
-              {isRegisterFormInvalid && actionData?.error.fieldErrors?.name ? (
-                <p className="text-sm text-red-500">Field is required</p>
-              ) : null}
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                name="phoneNumber"
-                placeholder="+1 234 567 890"
-              />
-              {isRegisterFormInvalid &&
-              actionData?.error.fieldErrors?.phoneNumber ? (
-                <p className="text-sm text-red-500">Field is required</p>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="m@example.com"
-            />
-            {isRegisterFormInvalid && actionData?.error.fieldErrors?.email ? (
-              <p className="text-sm text-red-500">Invalid email address</p>
-            ) : null}
-          </div>
-
-          <Button
-            className="mt-4 w-full"
-            type="submit"
-            name="intent"
-            value="register"
-          >
-            {navigation.state === 'submitting' ? (
-              <Loader2 className="mr-2 animate-spin" />
-            ) : null}
-            Register
-          </Button>
-        </Form>
-      )}
+      {isRegisterSuccess ? <PasswordForm /> : <RegisterForm />}
 
       <div className="mt-6 text-center">
         <p className="text-muted-foreground">Already have an account?</p>
@@ -296,6 +191,113 @@ export default function Register() {
         </Link>
       </div>
     </div>
+  )
+}
+
+function RegisterForm() {
+  const actionData = useActionData<typeof action>()
+  const navigation = useNavigation()
+  const isRegisterFormInvalid = actionData?.type === 'registerFormError'
+
+  return (
+    <Form method="post">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="name">Name</Label>
+          <Input id="name" name="name" placeholder="John Doe" />
+          {isRegisterFormInvalid && actionData?.error.fieldErrors?.name ? (
+            <p className="text-sm text-red-500">Field is required</p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="phone">Phone</Label>
+          <Input id="phone" name="phoneNumber" placeholder="+1 234 567 890" />
+          {isRegisterFormInvalid &&
+          actionData?.error.fieldErrors?.phoneNumber ? (
+            <p className="text-sm text-red-500">Field is required</p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          placeholder="m@example.com"
+        />
+        {isRegisterFormInvalid && actionData?.error.fieldErrors?.email ? (
+          <p className="text-sm text-red-500">Invalid email address</p>
+        ) : null}
+      </div>
+
+      <Button
+        className="mt-4 w-full"
+        type="submit"
+        name="intent"
+        value="register"
+      >
+        {navigation.state === 'submitting' ? (
+          <Loader2 className="mr-2 animate-spin" />
+        ) : null}
+        Register
+      </Button>
+    </Form>
+  )
+}
+
+function PasswordForm() {
+  const {userId, email} = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
+  const isPasswordFormInvalid = actionData?.type === 'passwordFormError'
+
+  return (
+    <Form method="post">
+      <input type="hidden" value={userId} name="userId" />
+      <input type="hidden" value={email} name="email" />
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="password">Password</Label>
+        <Input id="password" name="password" type="password" />
+        {isPasswordFormInvalid && actionData?.error.fieldErrors?.password ? (
+          <p className="text-sm text-red-500">
+            {actionData.error.fieldErrors.password[0]}
+          </p>
+        ) : null}
+      </div>
+      <div className="mt-4 flex flex-col gap-2">
+        <Label htmlFor="passwordCheck">Repeat password</Label>
+        <Input id="passwordCheck" name="passwordCheck" type="password" />
+        <div>
+          {isPasswordFormInvalid && actionData?.error.fieldErrors?.password ? (
+            <p className="text-sm text-red-500">
+              {actionData.error.fieldErrors.password[0]}
+            </p>
+          ) : null}
+          {isPasswordFormInvalid && actionData.error.formErrors ? (
+            <p className="text-sm text-red-500">
+              {actionData.error.formErrors[0]}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center gap-2">
+        <Button
+          className="flex-1"
+          variant="outline"
+          name="intent"
+          value="destroy"
+          type="submit"
+        >
+          Register
+        </Button>
+        <Button className="flex-1" type="submit" name="intent" value="password">
+          Set password
+        </Button>
+      </div>
+    </Form>
   )
 }
 
