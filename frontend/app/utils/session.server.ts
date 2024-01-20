@@ -1,4 +1,5 @@
 import {createCookieSessionStorage, redirect} from '@remix-run/node'
+import {ENV} from '~/env'
 
 type SessionData = {
   userId: string
@@ -19,6 +20,7 @@ export const {getSession, commitSession, destroySession} =
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
+      secrets: [ENV.SESSION_SECRET],
     },
   })
 
@@ -44,6 +46,7 @@ export async function authenticate(request: Request) {
     return accessToken
   } catch (error) {
     if (error instanceof AuthorizationError) {
+      console.error('Session expired, destroying session')
       await destroySession(session)
       throw redirect('/login') // TODO: (gonza) - Remove this when refresh token is implemented
       // // refresh the token somehow, this depends on the API you are using
