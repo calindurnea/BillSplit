@@ -16,12 +16,7 @@ import {Alert, AlertDescription, AlertTitle} from '~/components/ui/alert'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
 import {Label} from '~/components/ui/label'
-import {
-  authenticate,
-  commitSession,
-  destroySession,
-  getSession,
-} from '~/utils/session.server'
+import {commitSession, destroySession, getSession} from '~/utils/session.server'
 import {entitySchema, knownErrorSchema} from '~/utils/types'
 
 const registerSchema = z.object({
