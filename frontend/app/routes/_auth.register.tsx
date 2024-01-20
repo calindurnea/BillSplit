@@ -16,8 +16,8 @@ import {Alert, AlertDescription, AlertTitle} from '~/components/ui/alert'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
 import {Label} from '~/components/ui/label'
+import {commitSession, destroySession, getSession} from '~/utils/session.server'
 import {entitySchema, knownErrorSchema} from '~/utils/types'
-import {getRegisterUser, setRegisterUser} from '~/utils/user.sever'
 
 const registerSchema = z.object({
   name: z.string().trim().min(1),
@@ -47,6 +47,7 @@ const KNWON_REGISTER_ERROR_STATUS = [400, 401, 403, 409]
 const KNWON_PASSWORD_ERROR_STATUS = [400, 401, 403, 404]
 
 export async function action({request}: ActionFunctionArgs) {
+  const session = await getSession(request.headers.get('Cookie'))
   const formData = Object.fromEntries(await request.formData())
   const {intent} = z
     .object({
@@ -61,7 +62,7 @@ export async function action({request}: ActionFunctionArgs) {
   if (intent === 'destroy') {
     return json(
       {type: 'destroy' as const},
-      {headers: {'Set-Cookie': setRegisterUser(undefined)}},
+      {headers: {'Set-Cookie': await destroySession(session)}},
     )
   }
 
@@ -132,10 +133,9 @@ export async function action({request}: ActionFunctionArgs) {
 
     if (response.status === 201) {
       const {id} = entitySchema.parse(await response.json())
+      session.set('userId', String(id))
       const responseInit = {
-        headers: {
-          'Set-Cookie': setRegisterUser({userId: id, email: body.email}),
-        },
+        headers: {'Set-Cookie': await commitSession(session)},
       }
       return json({type: 'registerSuccess' as const, ...body}, responseInit)
     }
@@ -148,11 +148,8 @@ export async function action({request}: ActionFunctionArgs) {
 }
 
 export async function loader({request}: LoaderFunctionArgs) {
-  const user = getRegisterUser(request)
-  const parsedUser = user
-    ? (JSON.parse(user) as {userId: string; email: string})
-    : undefined
-  return json({...parsedUser})
+  const session = await getSession(request.headers.get('Cookie'))
+  return json({userId: session.get('userId'), email: session.get('email')})
 }
 
 export default function RegisterPage() {
