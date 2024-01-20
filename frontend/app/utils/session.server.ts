@@ -29,8 +29,9 @@ class AuthorizationError extends Error {
   }
 }
 
-async function authenticate(request: Request, headers = new Headers()) {
+export async function authenticate(request: Request, headers = new Headers()) {
   const session = await getSession(request.headers.get('Cookie'))
+
   try {
     // get the auth data from the session
     const accessToken = session.get('token')
@@ -47,10 +48,12 @@ async function authenticate(request: Request, headers = new Headers()) {
       throw new AuthorizationError('Expired')
     }
 
-    headers.set('Authorization', `Bearer ${accessToken}`)
+    // request.headers.append('Authorization', `Bearer ${accessToken}`)
+
+    // throw redirect('/')
 
     // if not expired, return the access token
-    // return accessToken
+    return accessToken
   } catch (error) {
     // // here, check if the error is an AuthorizationError (the one we throw above)
     // if (error instanceof AuthorizationError) {

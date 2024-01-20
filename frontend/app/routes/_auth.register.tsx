@@ -16,7 +16,12 @@ import {Alert, AlertDescription, AlertTitle} from '~/components/ui/alert'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
 import {Label} from '~/components/ui/label'
-import {commitSession, destroySession, getSession} from '~/utils/session.server'
+import {
+  authenticate,
+  commitSession,
+  destroySession,
+  getSession,
+} from '~/utils/session.server'
 import {entitySchema, knownErrorSchema} from '~/utils/types'
 
 const registerSchema = z.object({
@@ -25,19 +30,15 @@ const registerSchema = z.object({
   email: z.string().email(),
 })
 
-const passwordSchema = registerSchema
-  .pick({email: true})
-  .merge(
-    z.object({
-      userId: z.string(),
-      password: z
-        .string()
-        .min(6, {message: 'Password must contain at least 6 characters'}),
-      passwordCheck: z
-        .string()
-        .min(6, {message: 'Password must contain at least 6 characters'}),
-    }),
-  )
+const passwordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(6, {message: 'Password must contain at least 6 characters'}),
+    passwordCheck: z
+      .string()
+      .min(6, {message: 'Password must contain at least 6 characters'}),
+  })
   .refine(
     schema => schema.password === schema.passwordCheck,
     'Passwords must match',
@@ -82,7 +83,7 @@ export async function action({request}: ActionFunctionArgs) {
       'http://localhost:5003/api/Authorization/password',
       {
         method: 'POST',
-        body: JSON.stringify(body),
+        body: JSON.stringify({...body, userId: session.get('userId')}),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -91,7 +92,32 @@ export async function action({request}: ActionFunctionArgs) {
 
     // TODO: If successful, we set the password and automatically login the user
     if (response.status === 204) {
-      return redirect('/login')
+      const response = await fetch(
+        'http://localhost:5003/api/Authorization/login',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            email: session.get('email'),
+            password: body.password,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      const data = (await response.json()) as {token: string; expiresOn: Date}
+
+      session.set('token', data.token)
+      session.set('expiresOn', data.expiresOn)
+      session.unset('userId')
+      session.unset('email')
+
+      return redirect('/', {
+        headers: {
+          Authorization: `Bearer ${data.token}`,
+          'Set-Cookie': await commitSession(session),
+        },
+      })
       // const response = await fetch(
       //   'http://localhost:5003/api/Authorization/login',
       //   {
@@ -134,6 +160,7 @@ export async function action({request}: ActionFunctionArgs) {
     if (response.status === 201) {
       const {id} = entitySchema.parse(await response.json())
       session.set('userId', String(id))
+      session.set('email', body.email)
       const responseInit = {
         headers: {'Set-Cookie': await commitSession(session)},
       }
@@ -149,6 +176,7 @@ export async function action({request}: ActionFunctionArgs) {
 
 export async function loader({request}: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
+  await authenticate(request)
   return json({userId: session.get('userId'), email: session.get('email')})
 }
 
