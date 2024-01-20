@@ -4,6 +4,7 @@ import {
   Link,
   isRouteErrorResponse,
   json,
+  redirect,
   useActionData,
   useLoaderData,
   useNavigation,
@@ -15,8 +16,8 @@ import {Alert, AlertDescription, AlertTitle} from '~/components/ui/alert'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
 import {Label} from '~/components/ui/label'
+import {commitSession, destroySession, getSession} from '~/utils/session.server'
 import {entitySchema, knownErrorSchema} from '~/utils/types'
-import {getUserId, setUserId} from '~/utils/user.sever'
 
 const registerSchema = z.object({
   name: z.string().trim().min(1),
@@ -24,9 +25,25 @@ const registerSchema = z.object({
   email: z.string().email(),
 })
 
-const KNWON_ERROR_STATUS = [400, 401, 403, 409]
+const passwordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(6, {message: 'Password must contain at least 6 characters'}),
+    passwordCheck: z
+      .string()
+      .min(6, {message: 'Password must contain at least 6 characters'}),
+  })
+  .refine(
+    schema => schema.password === schema.passwordCheck,
+    'Passwords must match',
+  )
+
+const KNWON_REGISTER_ERROR_STATUS = [400, 401, 403, 409]
+const KNWON_PASSWORD_ERROR_STATUS = [400, 401, 403, 404]
 
 export async function action({request}: ActionFunctionArgs) {
+  const session = await getSession(request.headers.get('Cookie'))
   const formData = Object.fromEntries(await request.formData())
   const {intent} = z
     .object({
@@ -41,20 +58,73 @@ export async function action({request}: ActionFunctionArgs) {
   if (intent === 'destroy') {
     return json(
       {type: 'destroy' as const},
-      {headers: {'Set-Cookie': setUserId(undefined)}},
+      {headers: {'Set-Cookie': await destroySession(session)}},
     )
   }
 
   if (intent === 'password') {
-    return json({type: 'passwordSuccess' as const})
-    // TODO: This should trigger a post to /password, and if successfull trigger a post to /login
+    const parsedForm = passwordSchema.safeParse(formData)
+    if (!parsedForm.success) {
+      const fieldErrors = parsedForm.error.flatten().fieldErrors
+      const formErrors = parsedForm.error.flatten().formErrors
+      return json({
+        type: 'passwordFormError' as const,
+        error: {fieldErrors, formErrors},
+      })
+    }
+    const {data: body} = parsedForm
+
+    const response = await fetch(
+      'http://localhost:5003/api/Authorization/password',
+      {
+        method: 'POST',
+        body: JSON.stringify({...body, userId: session.get('userId')}),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+
+    // TODO: If successful, we set the password and automatically login the user
+    if (response.status === 204) {
+      const response = await fetch(
+        'http://localhost:5003/api/Authorization/login',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            email: session.get('email'),
+            password: body.password,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      const data = (await response.json()) as {token: string; expiresOn: Date}
+
+      session.set('token', data.token)
+      session.set('expiresOn', data.expiresOn)
+      session.unset('userId')
+      session.unset('email')
+
+      return redirect('/', {
+        headers: {
+          'Set-Cookie': await commitSession(session),
+        },
+      })
+    }
+
+    if (KNWON_PASSWORD_ERROR_STATUS.includes(response.status)) {
+      const responseError = knownErrorSchema.parse(await response.json())
+      return json({type: 'responseError' as const, error: {responseError}})
+    }
   }
 
   if (intent === 'register') {
     const parsedForm = registerSchema.safeParse(formData)
     if (!parsedForm.success) {
       const fieldErrors = parsedForm.error.flatten().fieldErrors
-      return json({type: 'formError' as const, error: {fieldErrors}})
+      return json({type: 'registerFormError' as const, error: {fieldErrors}})
     }
     const {data: body} = parsedForm
 
@@ -68,15 +138,15 @@ export async function action({request}: ActionFunctionArgs) {
 
     if (response.status === 201) {
       const {id} = entitySchema.parse(await response.json())
+      session.set('userId', String(id))
+      session.set('email', body.email)
       const responseInit = {
-        headers: {
-          'Set-Cookie': setUserId(id),
-        },
+        headers: {'Set-Cookie': await commitSession(session)},
       }
-      return json({type: 'registerSuccess' as const}, responseInit)
+      return json({type: 'registerSuccess' as const, ...body}, responseInit)
     }
 
-    if (KNWON_ERROR_STATUS.includes(response.status)) {
+    if (KNWON_REGISTER_ERROR_STATUS.includes(response.status)) {
       const responseError = knownErrorSchema.parse(await response.json())
       return json({type: 'responseError' as const, error: {responseError}})
     }
@@ -84,16 +154,13 @@ export async function action({request}: ActionFunctionArgs) {
 }
 
 export async function loader({request}: LoaderFunctionArgs) {
-  const userId = getUserId(request)
-  return json({userId})
+  const session = await getSession(request.headers.get('Cookie'))
+  return json({userId: session.get('userId'), email: session.get('email')})
 }
 
-export default function Register() {
+export default function RegisterPage() {
   const {userId} = useLoaderData<typeof loader>()
   const actionData = useActionData<typeof action>()
-  const navigation = useNavigation()
-
-  const isFormInvalid = actionData?.type === 'formError'
   const isResponseError = actionData?.type === 'responseError'
   const isRegisterSuccess = Boolean(userId)
 
@@ -118,92 +185,7 @@ export default function Register() {
         </div>
       ) : null}
 
-      {isRegisterSuccess ? (
-        <Form method="post">
-          <input type="hidden" value={userId} name="userId" />
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" name="password" type="password" />
-          </div>
-          <div className="mt-4 flex flex-col gap-2">
-            <Label htmlFor="repeat_password">Repeat password</Label>
-            <Input
-              id="repeat_password"
-              name="repeat_password"
-              type="password"
-            />
-          </div>
-
-          <div className="mt-4 flex items-center gap-2">
-            <Button
-              className="flex-1"
-              variant="outline"
-              name="intent"
-              value="destroy"
-              type="submit"
-            >
-              Register
-            </Button>
-            <Button
-              className="flex-1"
-              type="submit"
-              name="intent"
-              value="password"
-            >
-              Set password
-            </Button>
-          </div>
-        </Form>
-      ) : (
-        <Form method="post">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" placeholder="John Doe" />
-              {isFormInvalid && actionData?.error.fieldErrors?.name ? (
-                <p className="text-sm text-red-500">Field is required</p>
-              ) : null}
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                name="phoneNumber"
-                placeholder="+1 234 567 890"
-              />
-              {isFormInvalid && actionData?.error.fieldErrors?.phoneNumber ? (
-                <p className="text-sm text-red-500">Field is required</p>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="m@example.com"
-            />
-            {isFormInvalid && actionData?.error.fieldErrors?.email ? (
-              <p className="text-sm text-red-500">Invalid email address</p>
-            ) : null}
-          </div>
-
-          <Button
-            className="mt-4 w-full"
-            type="submit"
-            name="intent"
-            value="register"
-          >
-            {navigation.state === 'submitting' ? (
-              <Loader2 className="mr-2 animate-spin" />
-            ) : null}
-            Register
-          </Button>
-        </Form>
-      )}
+      {isRegisterSuccess ? <PasswordForm /> : <RegisterForm />}
 
       <div className="mt-6 text-center">
         <p className="text-muted-foreground">Already have an account?</p>
@@ -212,6 +194,113 @@ export default function Register() {
         </Link>
       </div>
     </div>
+  )
+}
+
+function RegisterForm() {
+  const actionData = useActionData<typeof action>()
+  const navigation = useNavigation()
+  const isRegisterFormInvalid = actionData?.type === 'registerFormError'
+
+  return (
+    <Form method="post">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="name">Name</Label>
+          <Input id="name" name="name" placeholder="John Doe" />
+          {isRegisterFormInvalid && actionData?.error.fieldErrors?.name ? (
+            <p className="text-sm text-red-500">Field is required</p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="phone">Phone</Label>
+          <Input id="phone" name="phoneNumber" placeholder="+1 234 567 890" />
+          {isRegisterFormInvalid &&
+          actionData?.error.fieldErrors?.phoneNumber ? (
+            <p className="text-sm text-red-500">Field is required</p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          placeholder="m@example.com"
+        />
+        {isRegisterFormInvalid && actionData?.error.fieldErrors?.email ? (
+          <p className="text-sm text-red-500">Invalid email address</p>
+        ) : null}
+      </div>
+
+      <Button
+        className="mt-4 w-full"
+        type="submit"
+        name="intent"
+        value="register"
+      >
+        {navigation.state === 'submitting' ? (
+          <Loader2 className="mr-2 animate-spin" />
+        ) : null}
+        Register
+      </Button>
+    </Form>
+  )
+}
+
+function PasswordForm() {
+  const {userId, email} = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
+  const isPasswordFormInvalid = actionData?.type === 'passwordFormError'
+
+  return (
+    <Form method="post">
+      <input type="hidden" value={userId} name="userId" />
+      <input type="hidden" value={email} name="email" />
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="password">Password</Label>
+        <Input id="password" name="password" type="password" />
+        {isPasswordFormInvalid && actionData?.error.fieldErrors?.password ? (
+          <p className="text-sm text-red-500">
+            {actionData.error.fieldErrors.password[0]}
+          </p>
+        ) : null}
+      </div>
+      <div className="mt-4 flex flex-col gap-2">
+        <Label htmlFor="passwordCheck">Repeat password</Label>
+        <Input id="passwordCheck" name="passwordCheck" type="password" />
+        <div>
+          {isPasswordFormInvalid && actionData?.error.fieldErrors?.password ? (
+            <p className="text-sm text-red-500">
+              {actionData.error.fieldErrors.password[0]}
+            </p>
+          ) : null}
+          {isPasswordFormInvalid && actionData.error.formErrors ? (
+            <p className="text-sm text-red-500">
+              {actionData.error.formErrors[0]}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center gap-2">
+        <Button
+          className="flex-1"
+          variant="outline"
+          name="intent"
+          value="destroy"
+          type="submit"
+        >
+          Register
+        </Button>
+        <Button className="flex-1" type="submit" name="intent" value="password">
+          Set password
+        </Button>
+      </div>
+    </Form>
   )
 }
 
@@ -226,7 +315,7 @@ export function ErrorBoundary() {
     return (
       <div className="flex items-center justify-center">
         <div>
-          <h1 className="text-5xl font-bold">Oopsy!</h1>
+          <h1 className="text-5xl font-bold">Oops!</h1>
           {error.data?.message ? (
             <p className="my-4 text-xl text-muted-foreground">
               {error.data.message}
@@ -246,7 +335,7 @@ export function ErrorBoundary() {
     return (
       <div className="flex items-center justify-center">
         <div>
-          <h1 className="text-5xl font-bold">Oopsy!</h1>
+          <h1 className="text-5xl font-bold">Oops!</h1>
           <p className="my-4 text-xl text-muted-foreground">
             An error occurred. Please try again later.
           </p>

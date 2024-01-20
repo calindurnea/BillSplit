@@ -2,6 +2,7 @@ import {z} from 'zod'
 
 const envVariables = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']),
+  SESSION_SECRET: z.string().trim().min(1),
 })
 
 // Just in case somewhere around the codebase we access process.env
