@@ -21,7 +21,7 @@ public static class StartupExtensions
             options.InstanceName = "bill-split";
         });
 
-        services.AddScoped<IDatabase>(_ => ConnectionMultiplexer.Connect(redisConnectionString).GetDatabase());
+        services.AddScoped<IDatabaseAsync>(_ => ConnectionMultiplexer.Connect(redisConnectionString).GetDatabase());
         services.AddScoped<ICacheManger, CacheManger>();
         return services;
     }

@@ -27,15 +27,13 @@ public class LoggedInAuthorizationHandler : AuthorizationHandler<LoggedInAuthori
     }
 
     /// <inheritdoc />
-    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, LoggedInAuthorizationRequirement requirement)
+    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, LoggedInAuthorizationRequirement requirement)
     {
         var userClaims = context.User.Claims.ToList();
         var userId = userClaims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-        if (!string.IsNullOrWhiteSpace(userId) && _cacheManger.Exists("authorization:logged:users:" + userId))
+        if (!string.IsNullOrWhiteSpace(userId) && await _cacheManger.Exists("authorization:logged:users:" + userId))
         {
             context.Succeed(requirement);
         }
-
-        return Task.CompletedTask;
     }
 }

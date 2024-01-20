@@ -69,7 +69,7 @@ internal sealed class AuthorizationService : IAuthorizationService
 
         var tokenResult = _jwtTokenGenerator.CreateToken(user);
 
-        _cacheManger.SetData(
+        await _cacheManger.SetData(
             "authorization:logged:users:" + user.Id,
             user.Id.ToString(CultureInfo.InvariantCulture),
             TimeSpan.FromMinutes(5));
@@ -77,8 +77,8 @@ internal sealed class AuthorizationService : IAuthorizationService
         return new LoginResponseDto(tokenResult.Token, tokenResult.ExpiresOn);
     }
 
-    public Task Logout(long userId)
+    public async Task Logout(long userId)
     {
-        return Task.FromResult(_cacheManger.RemoveData("authorization:logged:users:" + userId));
+        await _cacheManger.RemoveData("authorization:logged:users:" + userId);
     }
 }

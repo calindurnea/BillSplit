@@ -2,7 +2,7 @@
 
 public interface ICacheManger
 {
-    void SetData<T>(string key, T value, TimeSpan? lifetime = null);
-    bool RemoveData(string key);
-    bool Exists(string key);
+    Task SetData<T>(string key, T value, TimeSpan? lifetime = null);
+    Task<bool> RemoveData(string key);
+    Task<bool> Exists(string key);
 }

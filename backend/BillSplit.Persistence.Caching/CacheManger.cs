@@ -5,32 +5,26 @@ namespace BillSplit.Persistence.Caching;
 
 internal sealed class CacheManger : ICacheManger
 {
-    private readonly IDatabase _database;
+    private readonly IDatabaseAsync _database;
 
-    public CacheManger(IDatabase database)
+    public CacheManger(IDatabaseAsync database)
     {
         _database = database;
     }
 
-    public bool Exists(string key)
+    public async Task<bool> Exists(string key)
     {
-        return _database.KeyExists(key);
+        return await _database.KeyExistsAsync(key);
     }
 
-    public T? GetData<T>(string key)
+    public async Task SetData<T>(string key, T value, TimeSpan? lifetime = null)
     {
-        var value = _database.StringGet(key);
-        return value.HasValue ? JsonConvert.DeserializeObject<T>(value!) : default;
+       await _database.StringSetAsync(key, JsonConvert.SerializeObject(value), lifetime);
     }
 
-    public void SetData<T>(string key, T value, TimeSpan? lifetime = null)
+    public async Task<bool> RemoveData(string key)
     {
-        _database.StringSet(key, JsonConvert.SerializeObject(value), lifetime);
-    }
-
-    public bool RemoveData(string key)
-    {
-        var keyExist = _database.KeyExists(key);
-        return keyExist && _database.KeyDelete(key);
+        var keyExist = await _database.KeyExistsAsync(key);
+        return keyExist && await _database.KeyDeleteAsync(key);
     }
 }
