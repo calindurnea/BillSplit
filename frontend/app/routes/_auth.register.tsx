@@ -114,7 +114,6 @@ export async function action({request}: ActionFunctionArgs) {
 
       return redirect('/', {
         headers: {
-          Authorization: `Bearer ${data.token}`,
           'Set-Cookie': await commitSession(session),
         },
       })
@@ -161,7 +160,6 @@ export async function action({request}: ActionFunctionArgs) {
 
 export async function loader({request}: LoaderFunctionArgs) {
   const session = await getSession(request.headers.get('Cookie'))
-  await authenticate(request)
   return json({userId: session.get('userId'), email: session.get('email')})
 }
 
