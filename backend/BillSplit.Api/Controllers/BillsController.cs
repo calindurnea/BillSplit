@@ -1,4 +1,5 @@
-﻿using BillSplit.Api.Extensions;
+﻿using System.ComponentModel.DataAnnotations;
+using BillSplit.Api.Extensions;
 using BillSplit.Contracts.Bill;
 using BillSplit.Services.Abstractions.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -50,7 +51,7 @@ public class BillsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> UpsertBill([BindRequired, FromBody] UpsertBillDto upsertBill, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> UpsertBill([FromBody, Required] UpsertBillDto upsertBill, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
         var id = await _billService.UpsertBill(user, upsertBill, cancellationToken);
@@ -65,7 +66,7 @@ public class BillsController : ControllerBase
     /// <returns>No content if successful, an error otherwise</returns>
     [HttpDelete("{id:long}", Name = nameof(DeleteBill))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> DeleteBill([BindRequired, FromRoute] long id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> DeleteBill([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
     {
         var user = HttpContext.User.GetCurrentUser();
         await _billService.Delete(user, id, cancellationToken);

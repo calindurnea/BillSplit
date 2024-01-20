@@ -1,8 +1,8 @@
-﻿using BillSplit.Api.Extensions;
+﻿using System.ComponentModel.DataAnnotations;
+using BillSplit.Api.Extensions;
 using BillSplit.Contracts.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using IAuthorizationService = BillSplit.Services.Abstractions.Interfaces.IAuthorizationService;
 
 namespace BillSplit.Api.Controllers;
@@ -36,7 +36,7 @@ public class AuthorizationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> SetPassword([FromBody, BindRequired] SetInitialPasswordDto setInitialPassword)
+    public async Task<IActionResult> SetPassword([FromBody, Required] SetInitialPasswordDto setInitialPassword)
     {
         await _authorizationService.SetInitialPassword(setInitialPassword);
         return NoContent();
@@ -50,7 +50,7 @@ public class AuthorizationController : ControllerBase
     [HttpPut("password", Name = nameof(UpdatePassword))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> UpdatePassword([FromBody, BindRequired] UpdatePasswordDto updatePassword)
+    public async Task<IActionResult> UpdatePassword([FromBody, Required] UpdatePasswordDto updatePassword)
     {
         var user = HttpContext.User;
         await _authorizationService.UpdatePassword(user, updatePassword);
@@ -65,7 +65,7 @@ public class AuthorizationController : ControllerBase
     [AllowAnonymous]
     [HttpPost("login", Name = nameof(Login))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponseDto))]
-    public async Task<IActionResult> Login([BindRequired] LoginRequestDto loginRequest)
+    public async Task<IActionResult> Login([FromBody, Required] LoginRequestDto loginRequest)
     {
         var response = await _authorizationService.Login(loginRequest);
         return Ok(response);

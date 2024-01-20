@@ -1,4 +1,5 @@
-﻿using BillSplit.Api.Extensions;
+﻿using System.ComponentModel.DataAnnotations;
+using BillSplit.Api.Extensions;
 using BillSplit.Contracts.Authorization;
 using BillSplit.Contracts.User;
 using BillSplit.Domain.Exceptions;
@@ -77,7 +78,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> UpdateUser([FromRoute, BindRequired] long id, [FromBody, BindRequired] UpsertUserDto upsertUser)
+    public async Task<IActionResult> UpdateUser([FromRoute, BindRequired] long id, [FromBody, Required] UpsertUserDto upsertUser)
     {
         var user = HttpContext.User.GetCurrentUser();
 
@@ -100,7 +101,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [AllowAnonymous]
-    public async Task<IActionResult> CreateUser([FromBody, BindRequired] UpsertUserDto upsertUser)
+    public async Task<IActionResult> CreateUser([FromBody] UpsertUserDto upsertUser)
     {
         var id = await _userService.CreateUser(upsertUser);
         return CreatedAtAction(nameof(GetUserWithId), new { id }, new { id });
