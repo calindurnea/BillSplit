@@ -72,7 +72,7 @@ internal sealed class AuthorizationService : IAuthorizationService
         await _cacheManger.SetData(
             "authorization:logged:users:" + user.Id,
             user.Id.ToString(CultureInfo.InvariantCulture),
-            TimeSpan.FromMinutes(5));
+            tokenResult.ExpiresOn - DateTime.UtcNow);
 
         return new LoginResponseDto(tokenResult.Token, tokenResult.ExpiresOn);
     }
