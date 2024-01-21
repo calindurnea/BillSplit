@@ -72,6 +72,19 @@ public class AuthorizationController : ControllerBase
     }
 
     /// <summary>
+    /// Generates a new token based on the refresh token
+    /// </summary>
+    /// <returns>Bearer token and expiration date if login is successful</returns>
+    [AllowAnonymous]
+    [HttpPost("refresh", Name = nameof(Refresh))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponseDto))]
+    public async Task<IActionResult> Refresh([FromBody, Required] TokenRefreshRequestDto tokenRefreshRequest)
+    {
+        var response = await _authorizationService.RefreshToken(tokenRefreshRequest);
+        return Ok(response);
+    }
+
+    /// <summary>
     /// Logs out user
     /// </summary>
     /// <exception cref="NotImplementedException"></exception>

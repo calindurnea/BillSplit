@@ -68,17 +68,23 @@ internal sealed class AuthorizationService : IAuthorizationService
         }
 
         var tokenResult = _jwtTokenGenerator.CreateToken(user);
-
+        var refreshTokenResult = _jwtTokenGenerator.CreateRefreshTokenResult();
+        
         await _cacheManger.SetData(
             "authorization:logged:users:" + user.Id,
             user.Id.ToString(CultureInfo.InvariantCulture),
             TimeSpan.FromMinutes(5));
 
-        return new LoginResponseDto(tokenResult.Token, tokenResult.ExpiresOn);
+        return new LoginResponseDto(tokenResult.Token, refreshTokenResult, tokenResult.ExpiresOn);
     }
 
     public async Task Logout(long userId)
     {
         await _cacheManger.RemoveData("authorization:logged:users:" + userId);
+    }
+
+    public Task<LoginResponseDto> RefreshToken(TokenRefreshRequestDto request)
+    {
+        throw new NotImplementedException();
     }
 }

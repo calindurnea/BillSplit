@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using BillSplit.Contracts.Authorization;
 using BillSplit.Domain.Models;
@@ -26,6 +27,16 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
         var token = CreateJwtToken(CreateClaims(user), CreateSigningCredentials(), expiration);
         var tokenHandler = new JwtSecurityTokenHandler();
         return new CreateTokenResult(tokenHandler.WriteToken(token), expiration);
+    }
+
+#pragma warning disable CA1822
+    public string CreateRefreshTokenResult()
+#pragma warning restore CA1822
+    {
+        var randomNumber = new byte[64];
+        using var generator = RandomNumberGenerator.Create();
+        generator.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
     }
 
     private JwtSecurityToken CreateJwtToken(

@@ -1,3 +1,5 @@
-﻿namespace BillSplit.Contracts.Authorization;
+﻿using System.ComponentModel.DataAnnotations;
 
-public sealed record LoginResponseDto(string Token, DateTime ExpiresOn);
+namespace BillSplit.Contracts.Authorization;
+
+public sealed record LoginResponseDto([Required] string Token, [Required] string RefreshToken, [Required] DateTime ExpiresOn);
