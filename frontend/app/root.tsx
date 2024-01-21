@@ -1,6 +1,11 @@
 import {cssBundleHref} from '@remix-run/css-bundle'
-import type {LoaderFunctionArgs, MetaDescriptor} from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaDescriptor,
+} from '@remix-run/node'
 import {
+  Form,
   Link,
   Links,
   LiveReload,
@@ -9,6 +14,8 @@ import {
   Scripts,
   ScrollRestoration,
   json,
+  redirect,
+  useLoaderData,
 } from '@remix-run/react'
 import {Button} from './components/ui/button'
 import styles from './globals.css'
@@ -16,6 +23,12 @@ import {cn} from './lib/utils'
 import {ThemeSwitch, useTheme} from './routes/action.set-theme'
 import {ClientHintCheck, getHints} from './utils/client-hints'
 import {useNonce} from './utils/nonce-provider'
+import {
+  authFetch,
+  authenticate,
+  destroySession,
+  getSession,
+} from './utils/session.server'
 import {getTheme} from './utils/theme.server'
 
 export function links() {
@@ -32,17 +45,45 @@ export function meta(): Array<MetaDescriptor> {
   ]
 }
 
+export async function action({request}: ActionFunctionArgs) {
+  const session = await getSession(request.headers.get('Cookie'))
+  const token = await authenticate(request)
+  await authFetch(
+    token,
+    request,
+    'http://localhost:5003/api/Authorization/logout',
+    {
+      method: 'POST',
+    },
+  )
+  return redirect('/login', {
+    headers: {'Set-Cookie': await destroySession(session)},
+  })
+}
+
 export async function loader({request}: LoaderFunctionArgs) {
+  const session = await getSession(request.headers.get('Cookie'))
+  const token = session.get('token')
+
   return json({
     hints: getHints(request),
     theme: getTheme(request),
+    isAuthenticated: Boolean(token),
   })
 }
 
 export default function App() {
+  const data = useLoaderData<typeof loader>()
+
   return (
     <Document>
       <main className="flex flex-1 flex-col p-6">
+        {data.isAuthenticated ? (
+          <Form method="post">
+            <Button>Logout</Button>
+          </Form>
+        ) : null}
+
         <Outlet />
       </main>
       <ScrollRestoration />
