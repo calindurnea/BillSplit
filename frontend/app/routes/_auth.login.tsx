@@ -1,5 +1,5 @@
 import type {ActionFunctionArgs} from '@remix-run/node'
-import {Form, Link, json, redirect} from '@remix-run/react'
+import {Form, Link, json, redirect, useActionData} from '@remix-run/react'
 import {z} from 'zod'
 import {Button} from '~/components/ui/button'
 import {Input} from '~/components/ui/input'
@@ -7,8 +7,8 @@ import {Label} from '~/components/ui/label'
 import {commitSession, getSession} from '~/utils/session.server'
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().trim().min(0),
+  email: z.string().email().trim().min(1, {message: 'Email is required'}),
+  password: z.string().trim().min(1, {message: 'Password is required'}),
 })
 
 export async function action({request}: ActionFunctionArgs) {
@@ -18,7 +18,7 @@ export async function action({request}: ActionFunctionArgs) {
   const parsedForm = loginSchema.safeParse(formData)
   if (!parsedForm.success) {
     const fieldErrors = parsedForm.error.flatten().fieldErrors
-    return json({type: 'registerFormError' as const, error: {fieldErrors}})
+    return json({type: 'formError' as const, error: {fieldErrors}})
   }
   const {data: body} = parsedForm
   const response = await fetch(
@@ -46,6 +46,9 @@ export async function action({request}: ActionFunctionArgs) {
 }
 
 export default function Login() {
+  const actionData = useActionData<typeof action>()
+  const isFormInvalid = actionData?.type === 'formError'
+
   return (
     <div>
       <div className="mb-6 text-center">
@@ -59,10 +62,22 @@ export default function Login() {
         <div className="mb-4 flex flex-col gap-2">
           <Label htmlFor="email">Email</Label>
           <Input id="email" name="email" type="email" />
+          {isFormInvalid &&
+            actionData?.error.fieldErrors.email?.map((e, i) => (
+              <p key={i} className="text-sm text-red-500">
+                {e}
+              </p>
+            ))}
         </div>
         <div className="mb-4 flex flex-col gap-2">
           <Label htmlFor="email">Password</Label>
           <Input id="password" name="password" type="password" />
+          {isFormInvalid &&
+            actionData?.error.fieldErrors.password?.map((e, i) => (
+              <p key={i} className="text-sm text-red-500">
+                {e}
+              </p>
+            ))}
         </div>
 
         <Button className="w-full" variant="default" type="submit">
