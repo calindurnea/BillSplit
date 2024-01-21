@@ -33,9 +33,11 @@ class AuthenticationError extends Error {
 
 export async function authFetch(
   token: string,
+  request: Request,
   url: string,
   init?: RequestInit,
 ) {
+  const session = await getSession(request.headers.get('Cookie'))
   const response = await fetch(url, {
     ...init,
     headers: {
@@ -47,7 +49,9 @@ export async function authFetch(
 
   // Token might still be around, but not valid anymore
   if (response.status === 401 || response.status === 403) {
-    throw redirect('/login')
+    throw redirect('/login', {
+      headers: {'Set-Cookie': await destroySession(session)},
+    })
   }
 
   return response
@@ -69,8 +73,11 @@ export async function authenticate(request: Request) {
   } catch (error) {
     if (error instanceof AuthenticationError) {
       console.error('Session expired, destroying session')
-      await destroySession(session)
-      throw redirect('/login') // TODO: (gonza) - Remove this when refresh token is implemented
+
+      throw redirect('/login', {
+        headers: {'Set-Cookie': await destroySession(session)},
+      }) // TODO: (gonza) - Remove this when refresh token is implemented
+
       // // refresh the token somehow, this depends on the API you are using
       // const {accessToken, refreshToken, expirationDate} = await refreshToken(
       //   session.get('refreshToken'),
