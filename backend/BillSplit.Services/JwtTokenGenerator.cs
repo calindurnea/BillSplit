@@ -23,7 +23,7 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
 
     public CreateTokenResult CreateToken(User user)
     {
-        var expiration = DateTime.UtcNow.AddSeconds(30);
+        var expiration = DateTime.UtcNow.AddMinutes(ExpirationMinutes);
         var token = CreateJwtToken(CreateClaims(user), CreateSigningCredentials(), expiration);
         var tokenHandler = new JwtSecurityTokenHandler();
         return new CreateTokenResult(tokenHandler.WriteToken(token), expiration);
