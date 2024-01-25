@@ -1,9 +1,9 @@
 ﻿using BillSplit.Contracts.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
-using System.Text;
+using BillSplit.Domain.Configurations;
 using BillSplit.Services.Extensions;
-using Microsoft.IdentityModel.Tokens;
+
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace BillSplit.Api.Extensions;
@@ -51,7 +51,7 @@ public static class StartupExtensions
     internal static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>().ThrowIfNull();
-
+        
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -60,31 +60,9 @@ public static class StartupExtensions
         }).AddJwtBearer(options =>
         {
             options.SaveToken = true;
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidIssuer = jwtSettings.Issuer,
-                ValidAudience = jwtSettings.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                RequireAudience = true,
-                RequireExpirationTime = true,
-                LifetimeValidator = LifetimeValidator
-            };
+            options.TokenValidationParameters = TokenValidationConfiguration.Get(jwtSettings);
         });
 
         return services;
-    }
-
-    private static bool LifetimeValidator(DateTime? notbefore, DateTime? expires, SecurityToken securitytoken, TokenValidationParameters validationparameters)
-    {
-        if (expires != null)
-        {
-            return expires > DateTime.UtcNow;
-        }
-
-        return false;
     }
 }

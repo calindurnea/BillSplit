@@ -80,7 +80,8 @@ public class AuthorizationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponseDto))]
     public async Task<IActionResult> Refresh([FromBody, Required] TokenRefreshRequestDto tokenRefreshRequest)
     {
-        var response = await _authorizationService.RefreshToken(tokenRefreshRequest);
+        var user = HttpContext.User.GetCurrentUser();
+        var response = await _authorizationService.RefreshToken(user, tokenRefreshRequest);
         return Ok(response);
     }
 
