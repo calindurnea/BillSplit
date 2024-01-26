@@ -81,13 +81,53 @@ public class AuthorizationTests : IClassFixture<CustomWebApplicationFactory<Prog
 
         var newCurrentUserResponseBody = await newCurrentUserResponse.Content.ReadFromJsonAsync<UserDto>();
         Assert.Equal(expectedUser, newCurrentUserResponseBody);
-        
+
         // Logout
         var logoutResponse = await _httpClient.PostAsync("/api/authorization/logout", null);
         Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
-        
+
         // Get current user info with the logged out token
         var currentUserAfterLogoutResponse = await _httpClient.GetAsync("/api/users/current");
         Assert.Equal(HttpStatusCode.Forbidden, currentUserAfterLogoutResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task CanValidateAndUseRefreshToken()
+    {
+        // Create new user
+        var user = new UpsertUserDto(_fixture.Create<MailAddress>().Address, "some name", "some phone number");
+        var createUserResponse = await _httpClient.PostAsJsonAsync("/api/users", user);
+        var userId = createUserResponse.Headers.Location?.ToString().Split("/").Last();
+        Assert.True(int.TryParse(userId, out var parsedUserId));
+
+        // Set initial password
+        var password = _fixture.Create<string>();
+        var initialPasswordDto = new SetInitialPasswordDto(parsedUserId, password, password);
+        var setInitialPasswordResponse = await _httpClient.PostAsJsonAsync("/api/authorization/password", initialPasswordDto);
+        Assert.Equal(HttpStatusCode.NoContent, setInitialPasswordResponse.StatusCode);
+
+        // Login user
+        var loginRequestDto = new LoginRequestDto(user.Email, password);
+        var loginResponse = await _httpClient.PostAsJsonAsync("/api/authorization/login", loginRequestDto);
+        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
+
+        var loginResponseBody = await loginResponse.Content.ReadFromJsonAsync<LoginResponseDto>();
+        Assert.NotNull(loginResponseBody?.Token);
+        Assert.NotNull(loginResponseBody.RefreshToken);
+
+        // Refresh token
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginResponseBody.Token);
+        var tokenRefreshRequestDto = new TokenRefreshRequestDto(loginResponseBody.Token, loginResponseBody.RefreshToken);
+        var refreshResponse = await _httpClient.PostAsJsonAsync("/api/authorization/refresh", tokenRefreshRequestDto);
+        Assert.Equal(HttpStatusCode.OK, refreshResponse.StatusCode);
+
+        var refreshResponseBody = await refreshResponse.Content.ReadFromJsonAsync<LoginResponseDto>();
+        Assert.NotNull(refreshResponseBody?.Token);
+        Assert.NotNull(refreshResponseBody.RefreshToken);
+        
+        // Get current user info with the logged out token
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", refreshResponseBody.Token);
+        var newCurrentUserResponse = await _httpClient.GetAsync("/api/users/current");
+        Assert.Equal(HttpStatusCode.OK, newCurrentUserResponse.StatusCode);
     }
 }

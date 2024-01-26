@@ -95,13 +95,14 @@ internal sealed class AuthorizationService : IAuthorizationService
             user.Id.ToString(CultureInfo.InvariantCulture),
             tokenResult.ExpiresOn - DateTime.UtcNow + TimeSpan.FromSeconds(30));
 
-        await _cacheManger.PrePendData(RefreshTokenCacheKeyPrefix + user.Id, refreshTokenResult);
+        await _cacheManger.PrePendData(RefreshTokenCacheKeyPrefix + user.Id, refreshTokenResult.Token);
         return (tokenResult, refreshTokenResult);
     }
 
     public async Task Logout(long userId)
     {
         await _cacheManger.RemoveData(LoggedUserCacheKeyPrefix + userId);
+        await _cacheManger.RemoveData(RefreshTokenCacheKeyPrefix + userId);
     }
 
     public async Task<LoginResponseDto> RefreshToken(UserClaims userClaims, TokenRefreshRequestDto request)
@@ -119,9 +120,9 @@ internal sealed class AuthorizationService : IAuthorizationService
         await ValidateRefreshToken(request, user);
 
         // by this point:
-            // request data is valid (user claims, access token and refresh token ids and emails match
-            // the user exists in the db
-            // the refresh token was found and it is the last generated one
+        // request data is valid (user claims, access token and refresh token ids and emails match
+        // the user exists in the db
+        // the refresh token was found and it is the last generated one
 
         var (accessTokenResult, refreshTokenResult) = await GenerateLoginTokens(user);
         return new LoginResponseDto(accessTokenResult.Token, refreshTokenResult.Token, accessTokenResult.ExpiresOn);
@@ -130,6 +131,12 @@ internal sealed class AuthorizationService : IAuthorizationService
     private async Task ValidateRefreshToken(TokenRefreshRequestDto request, User user)
     {
         var refreshTokens = await _cacheManger.GetData<string>(RefreshTokenCacheKeyPrefix + user.Id, 0, 9);
+
+        if (refreshTokens.Length < 1)
+        {
+            InvalidRefreshTokenLogger(_logger, $"No refresh token was found for the user: `{user.Id}`", null);
+            throw new AuthenticationException("Invalid request");
+        }
 
         // validate if the list has the token but not as the most recent (refresh token is reused => bad)
         if (!string.Equals(refreshTokens[0], request.RefreshToken, StringComparison.Ordinal) &&

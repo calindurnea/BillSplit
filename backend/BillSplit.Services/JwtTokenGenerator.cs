@@ -20,7 +20,7 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
     private readonly JwtSettings _jwtSettings;
     private readonly ILogger<JwtTokenGenerator> _logger;
 
-    private const int ExpirationMinutes = 666;
+    private const int ExpirationMinutes = 1;
 
     private static readonly Action<ILogger, Exception> ExpiredTokenValidationLogger =
         LoggerMessage.Define(

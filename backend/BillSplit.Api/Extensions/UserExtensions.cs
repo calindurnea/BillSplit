@@ -16,8 +16,8 @@ internal static class UserExtensions
         }
 
         var userClaims = identity.Claims.ToList();
-        var id = userClaims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
-        var email = userClaims.First(x => x.Type == ClaimTypes.Email).Value;
+        var id = userClaims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value ?? throw new AuthenticationException();
+        var email = userClaims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value ?? throw new AuthenticationException();
 
         return new UserClaims(long.Parse(id, CultureInfo.InvariantCulture), email);
     }
