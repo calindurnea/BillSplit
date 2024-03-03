@@ -19,7 +19,8 @@ public static class TokenValidationConfiguration
             ValidateIssuerSigningKey = true,
             RequireAudience = true,
             RequireExpirationTime = true,
-            LifetimeValidator = LifetimeValidator
+            LifetimeValidator = LifetimeValidator,
+            ClockSkew = TimeSpan.Zero
         };
     }
 

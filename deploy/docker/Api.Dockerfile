@@ -1,11 +1,10 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 
 # Installed icu libs for global cultures (missing in alpine)
-RUN apk add icu
 EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 WORKDIR "/src"
 COPY ["Directory.Build.props", ""]

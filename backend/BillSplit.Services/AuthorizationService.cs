@@ -81,6 +81,8 @@ internal sealed class AuthorizationService : IAuthorizationService
             throw new AuthenticationException("Wrong username or password");
         }
 
+        await Logout(user.Id);
+
         var (accessTokenResult, refreshTokenResult) = await GenerateLoginTokens(user);
         return new LoginResponseDto(accessTokenResult.Token, refreshTokenResult.Token, accessTokenResult.ExpiresOn);
     }
@@ -102,12 +104,11 @@ internal sealed class AuthorizationService : IAuthorizationService
     public async Task Logout(long userId)
     {
         await _cacheManger.RemoveData(LoggedUserCacheKeyPrefix + userId);
-        await _cacheManger.RemoveData(RefreshTokenCacheKeyPrefix + userId);
     }
 
-    public async Task<LoginResponseDto> RefreshToken(UserClaims userClaims, TokenRefreshRequestDto request)
+    public async Task<LoginResponseDto> RefreshToken(TokenRefreshRequestDto request)
     {
-        ValidateReceivedData(userClaims, request);
+        var userClaims = GetValidatedUserClaims(request);
 
         var user = await _userManager.FindByEmailAsync(userClaims.Email);
 
@@ -160,7 +161,7 @@ internal sealed class AuthorizationService : IAuthorizationService
         }
     }
 
-    private void ValidateReceivedData(UserClaims user, TokenRefreshRequestDto request)
+    private UserClaims GetValidatedUserClaims(TokenRefreshRequestDto request)
     {
         // validate access token is correct and has claims
         if (!_jwtTokenGenerator.TryGetClaimsFromExpiredToken(request.Token, out var accessTokenClaims))
@@ -170,30 +171,36 @@ internal sealed class AuthorizationService : IAuthorizationService
         }
 
         // validate refresh token and get data
-        if (!_jwtTokenGenerator.TryGetUserClaimsFromRefreshToken(request.RefreshToken, out var refreshTokenClaims))
+        var deconstructedRefreshToken = _jwtTokenGenerator.DeconstructRefreshToken(request.RefreshToken);
+        if (deconstructedRefreshToken is null)
         {
             InvalidRefreshTokenLogger(_logger, $"Invalid refresh token: `{request.RefreshToken}`", null);
+            throw new AuthenticationException("Invalid request");
+        }
+
+        if (deconstructedRefreshToken.Expiry < DateTime.UtcNow)
+        {
+            InvalidRefreshTokenLogger(_logger, $"Expired refresh token: `{request.RefreshToken}`", null);
             throw new AuthenticationException("Invalid request");
         }
 
         var accessTokenId = long.Parse(accessTokenClaims.First(x => x.Type == ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
         var accessTokenEmail = accessTokenClaims.First(x => x.Type == ClaimTypes.Email).Value;
 
-        var ids = new List<long> { user.Id, accessTokenId, refreshTokenClaims.Id };
-        var emails = new List<string> { user.Email, accessTokenEmail, refreshTokenClaims.Email };
-
-        // validate all found ids match
-        if (ids.Distinct().Count() != 1)
+        // validate ids match
+        if (accessTokenId != deconstructedRefreshToken.Id)
         {
-            InvalidRefreshTokenLogger(_logger, $"Mismatching ids. Found: `{string.Join(',', ids)}`", null);
+            InvalidRefreshTokenLogger(_logger, $"Mismatching ids. Found: `{accessTokenId}, {deconstructedRefreshToken.Id}`", null);
             throw new AuthenticationException("Invalid request");
         }
 
-        // validate all found emails match
-        if (emails.Distinct().Count() != 1)
+        // validate emails match
+        if (!string.Equals(accessTokenEmail, deconstructedRefreshToken.Email, StringComparison.OrdinalIgnoreCase))
         {
-            InvalidRefreshTokenLogger(_logger, $"Mismatching emails. Found: `{string.Join(',', emails)}`", null);
+            InvalidRefreshTokenLogger(_logger, $"Mismatching emails. Found: `{accessTokenEmail}, {deconstructedRefreshToken.Email}`", null);
             throw new AuthenticationException("Invalid request");
         }
+
+        return new UserClaims(accessTokenId, accessTokenEmail);
     }
 }

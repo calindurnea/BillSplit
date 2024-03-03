@@ -10,5 +10,5 @@ public interface IAuthorizationService
     Task UpdatePassword(ClaimsPrincipal user, UpdatePasswordDto request);
     Task<LoginResponseDto> Login(LoginRequestDto request);
     Task Logout(long userId);
-    Task<LoginResponseDto> RefreshToken(UserClaims userClaims, TokenRefreshRequestDto request);
+    Task<LoginResponseDto> RefreshToken(TokenRefreshRequestDto request);
 }

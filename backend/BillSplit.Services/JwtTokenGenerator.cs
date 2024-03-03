@@ -5,7 +5,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using BillSplit.Contracts.Authorization;
-using BillSplit.Contracts.User;
 using BillSplit.Domain.Configurations;
 using BillSplit.Domain.Models;
 using BillSplit.Services.Abstractions.Interfaces;
@@ -20,7 +19,8 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
     private readonly JwtSettings _jwtSettings;
     private readonly ILogger<JwtTokenGenerator> _logger;
 
-    private const int ExpirationMinutes = 1;
+    private const int BearerTokenExpirationMinutes = 10;
+    private const int RefreshTokenExpirationMinutes = 30;
 
     private static readonly Action<ILogger, Exception> ExpiredTokenValidationLogger =
         LoggerMessage.Define(
@@ -42,7 +42,7 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
 
     public AccessTokenResult CreateToken(User user)
     {
-        var expiration = DateTime.UtcNow.AddMinutes(ExpirationMinutes);
+        var expiration = DateTime.UtcNow.AddMinutes(BearerTokenExpirationMinutes);
         var token = CreateJwtToken(CreateClaims(user), CreateSigningCredentials(), expiration);
         var tokenHandler = new JwtSecurityTokenHandler();
         return new AccessTokenResult(tokenHandler.WriteToken(token), expiration);
@@ -71,35 +71,36 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
 
     public RefreshTokenResult CreateRefreshToken(User user)
     {
-        var bytes = Encoding.UTF8.GetBytes($"{user.Id}:{user.Email}");
+        var expiration = DateTime.UtcNow.AddMinutes(RefreshTokenExpirationMinutes).Ticks;
+        var bytes = Encoding.UTF8.GetBytes($"{user.Id}:{user.Email}:{expiration}");
         var randomNumber = new byte[64];
         using var generator = RandomNumberGenerator.Create();
         generator.GetBytes(randomNumber);
         var combinedData = new byte[bytes.Length + randomNumber.Length];
         Buffer.BlockCopy(bytes, 0, combinedData, 0, bytes.Length);
         Buffer.BlockCopy(randomNumber, 0, combinedData, bytes.Length, randomNumber.Length);
+
         return new RefreshTokenResult(Convert.ToBase64String(combinedData));
     }
 
-    public bool TryGetUserClaimsFromRefreshToken(string refreshToken, out UserClaims claims)
+    public DeconstructedRefreshToken? DeconstructRefreshToken(string refreshToken)
     {
-        claims = default!;
         try
         {
             var bytes = Convert.FromBase64String(refreshToken);
             var idEmailBytes = new byte[bytes.Length - 64]; // Extract the array with the id and email bytes
             Buffer.BlockCopy(bytes, 0, idEmailBytes, 0, idEmailBytes.Length);
             var idEmail = Encoding.UTF8.GetString(idEmailBytes); // Convert the bytes back into a string
-            var parts = idEmail.Split(':'); // Split the string into the id and email
+            var parts = idEmail.Split(':'); // Split the string into the id, email and expiration
             var id = long.Parse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture);
             var email = parts[1];
-            claims = new UserClaims(id, email);
-            return true;
+            var expiration = long.Parse(parts[2], NumberStyles.None, CultureInfo.InvariantCulture);
+            return new DeconstructedRefreshToken(id, email, new DateTime(expiration));
         }
         catch (Exception e)
         {
             InvalidRefreshTokenLogger(_logger, e);
-            return false;
+            return null;
         }
     }
 
