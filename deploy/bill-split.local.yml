@@ -36,7 +36,7 @@ services:
       - ./local/postgresql_data:/var/lib/postgresql/data
 
   redis:
-    image: redis:alpine
+    image: redis:latest
     restart: always
     ports:
       - "6379:6379"

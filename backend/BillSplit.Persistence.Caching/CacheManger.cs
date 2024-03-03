@@ -19,7 +19,23 @@ internal sealed class CacheManger : ICacheManger
 
     public async Task SetData<T>(string key, T value, TimeSpan? lifetime = null)
     {
-       await _database.StringSetAsync(key, JsonConvert.SerializeObject(value), lifetime);
+        await _database.StringSetAsync(key, JsonConvert.SerializeObject(value), lifetime);
+    }
+
+    public async Task PrePendData<T>(string key, T value)
+    {
+        await _database.ListLeftPushAsync(key, JsonConvert.SerializeObject(value));
+    }
+
+    public async Task<T[]> GetData<T>(string key, long indexStart = 0, long indexEnd = -1)
+    {
+        var entries = await _database.ListRangeAsync(key, indexStart, indexEnd);
+
+        return entries
+            .Where(redisValue => redisValue.HasValue)
+            .Select(redisValue => JsonConvert.DeserializeObject<T>(redisValue.ToString()))
+            .OfType<T>()
+            .ToArray();
     }
 
     public async Task<bool> RemoveData(string key)

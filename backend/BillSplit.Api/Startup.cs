@@ -64,6 +64,9 @@ app.Run();
 
 // ReSharper disable once ClassNeverInstantiated.Global
 // Required for integration testing
-public partial class Program
+namespace BillSplit.Api
 {
+    public partial class Program
+    {
+    }
 }

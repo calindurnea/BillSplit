@@ -15,13 +15,15 @@ public static class StartupExtensions
             throw new KeyNotFoundException("RedisConnectionString not found");
         }
 
-        services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = redisConnectionString;
-            options.InstanceName = "bill-split";
-        });
-
-        services.AddScoped<IDatabaseAsync>(_ => ConnectionMultiplexer.Connect(redisConnectionString).GetDatabase());
+        services.AddScoped<IDatabaseAsync>(_ =>
+            ConnectionMultiplexer.Connect(redisConnectionString, configurationOptions =>
+            {
+                configurationOptions.AbortOnConnectFail = true;
+                configurationOptions.Protocol = RedisProtocol.Resp3;
+                configurationOptions.AllowAdmin = false;
+                configurationOptions.IncludePerformanceCountersInExceptions = true;
+            }).GetDatabase()
+        );
         services.AddScoped<ICacheManger, CacheManger>();
         return services;
     }

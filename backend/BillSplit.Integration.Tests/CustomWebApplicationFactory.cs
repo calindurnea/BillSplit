@@ -28,4 +28,9 @@ public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProg
         redisContainer.StartAsync().Wait();
         postgreSqlContainer.StartAsync().Wait();
     }
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.UseEnvironment("Production");
+    }
 }
