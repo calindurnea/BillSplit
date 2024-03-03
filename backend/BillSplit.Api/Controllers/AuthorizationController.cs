@@ -61,7 +61,7 @@ public class AuthorizationController : ControllerBase
     /// Generates a token to be used for authorization
     /// </summary>
     /// <param name="loginRequest">Login request</param>
-    /// <returns>Bearer token and expiration date if login is successful</returns>
+    /// <returns>Bearer token, refresh token and expiration date if login is successful</returns>
     [AllowAnonymous]
     [HttpPost("login", Name = nameof(Login))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponseDto))]
@@ -74,7 +74,7 @@ public class AuthorizationController : ControllerBase
     /// <summary>
     /// Generates a new token based on the refresh token
     /// </summary>
-    /// <returns>Bearer token and expiration date if login is successful</returns>
+    /// <returns>Bearer token, refresh token and expiration date if is successful</returns>
     [AllowAnonymous]
     [HttpPost("refresh", Name = nameof(Refresh))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponseDto))]
@@ -87,7 +87,6 @@ public class AuthorizationController : ControllerBase
     /// <summary>
     /// Logs out user
     /// </summary>
-    /// <exception cref="NotImplementedException"></exception>
     [HttpPost("logout", Name = nameof(Logout))]
     public async Task Logout()
     {
