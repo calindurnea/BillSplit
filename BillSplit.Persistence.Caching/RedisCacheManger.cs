@@ -3,11 +3,11 @@ using StackExchange.Redis;
 
 namespace BillSplit.Persistence.Caching;
 
-internal sealed class CacheManger : ICacheManger
+internal sealed class RedisCacheManger : ICacheManger
 {
     private readonly IDatabaseAsync _database;
 
-    public CacheManger(IDatabaseAsync database)
+    public RedisCacheManger(IDatabaseAsync database)
     {
         _database = database;
     }

@@ -8,23 +8,32 @@ public static class StartupExtensions
 {
     public static IServiceCollection AddPersistentCaching(this IServiceCollection services, IConfiguration configuration)
     {
-        var redisConnectionString = configuration.GetConnectionString("RedisConnectionString");
-
-        if (string.IsNullOrWhiteSpace(redisConnectionString))
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
         {
-            throw new KeyNotFoundException("RedisConnectionString not found");
+            services.AddMemoryCache();
+            services.AddSingleton<ICacheManger, MemoryCacheManger>();
+        }
+        else
+        {
+            var redisConnectionString = configuration.GetConnectionString("RedisConnectionString");
+
+            if (string.IsNullOrWhiteSpace(redisConnectionString))
+            {
+                throw new KeyNotFoundException("RedisConnectionString not found");
+            }
+
+            services.AddScoped<IDatabaseAsync>(_ =>
+                ConnectionMultiplexer.Connect(redisConnectionString, configurationOptions =>
+                {
+                    configurationOptions.AbortOnConnectFail = true;
+                    configurationOptions.Protocol = RedisProtocol.Resp3;
+                    configurationOptions.AllowAdmin = false;
+                    configurationOptions.IncludePerformanceCountersInExceptions = true;
+                }).GetDatabase()
+            );
+            services.AddSingleton<ICacheManger, RedisCacheManger>();
         }
 
-        services.AddScoped<IDatabaseAsync>(_ =>
-            ConnectionMultiplexer.Connect(redisConnectionString, configurationOptions =>
-            {
-                configurationOptions.AbortOnConnectFail = true;
-                configurationOptions.Protocol = RedisProtocol.Resp3;
-                configurationOptions.AllowAdmin = false;
-                configurationOptions.IncludePerformanceCountersInExceptions = true;
-            }).GetDatabase()
-        );
-        services.AddScoped<ICacheManger, CacheManger>();
         return services;
     }
 }
