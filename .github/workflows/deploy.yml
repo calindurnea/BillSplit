@@ -21,4 +21,4 @@ jobs:
     - name: Build and Push Docker Compose
       run: |
         docker compose -p bill-split -f deploy/bill-split.yml build
-        docker-compose push
+        docker-compose -p bill-split -f deploy/bill-split.yml push
