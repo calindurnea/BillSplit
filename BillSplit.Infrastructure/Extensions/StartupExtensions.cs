@@ -1,4 +1,5 @@
-﻿using BillSplit.Domain.Models;
+﻿using System.Text.RegularExpressions;
+using BillSplit.Domain.Models;
 using BillSplit.Persistence.Repositories;
 using BillSplit.Persistence.Repositories.Abstractions;
 using Microsoft.AspNetCore.Builder;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BillSplit.Persistence.Extensions;
 
-public static class ServiceCollectionExtensions
+public static partial class ServiceCollectionExtensions
 {
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
@@ -27,9 +28,18 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<BillsplitContext>(options =>
         {
             options.ConfigureWarnings(builder => builder.Ignore(CoreEventId.MultipleNavigationProperties));
-            options.UseNpgsql(
-                configuration.GetConnectionString("ApplicationContext"),
-                x => x.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "billsplit"));
+
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
+            {
+                var m = NpgsqlRegex().Match(Environment.GetEnvironmentVariable("DATABASE_URL") ?? throw new ArgumentNullException(Environment.GetEnvironmentVariable("DATABASE_URL")));
+                options.UseNpgsql($"Server={m.Groups[3]};Port={m.Groups[4]};User Id={m.Groups[1]};Password={m.Groups[2]};Database={m.Groups[5]};sslmode=Prefer;Trust Server Certificate=true");
+            }
+            else
+            {
+                options.UseNpgsql(
+                    configuration.GetConnectionString("ApplicationContext"),
+                    x => x.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "billsplit"));
+            }
         });
         services.AddScoped<IApplicationDbContext, BillsplitContext>();
 
@@ -64,4 +74,7 @@ public static class ServiceCollectionExtensions
 
         return app;
     }
+
+    [GeneratedRegex(@"postgres://(.*):(.*)@(.*):(.*)/(.*)")]
+    private static partial Regex NpgsqlRegex();
 }
