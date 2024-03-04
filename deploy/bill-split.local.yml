@@ -4,8 +4,8 @@ services:
   bill_split_api:
     container_name: bill_split_api_local
     build:
-      context: ./../backend/
-      dockerfile: ./../deploy/docker/Api.Dockerfile
+      context: ./../
+      dockerfile: ./deploy/docker/Api.Dockerfile
     pull_policy: always
     restart: always
     environment:

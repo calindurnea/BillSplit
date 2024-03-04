@@ -6,8 +6,8 @@ services:
     # TODO: Configure Docker hub
     # image: calinka/bill_split:api
     build:
-      context: ./../backend/
-      dockerfile: ./../deploy/docker/Api.Dockerfile
+      context: ./../
+      dockerfile: ./deploy/docker/Api.Dockerfile
     pull_policy: always
     restart: always
     environment:
