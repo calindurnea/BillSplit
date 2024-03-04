@@ -3,8 +3,7 @@ version: "3.8"
 services:
   bill_split_api:
     container_name: bill_split_api
-    # TODO: Configure Docker hub
-    # image: calinka/bill_split:api
+    image: durneacalin/billsplit:latest
     build:
       context: ./../
       dockerfile: ./deploy/docker/Api.Dockerfile
@@ -16,8 +15,8 @@ services:
       - ASPNETCORE_URLS=http://+:80;
       - ASPNETCORE_ENVIRONMENT=Production
       # Server - Application settings
-      - ConnectionStrings__ApplicationContext=host=postgresql;port=5432;database=bill_split_db;username=postgres;password=Pass@word
-      - ConnectionStrings__RedisConnectionString=redis:6379,password=Pass@word,abortConnect=false
+      - ConnectionStrings__ApplicationContext=host=postgresql;port=5432;database=${POSTGRES_DATABASE};username=${POSTGRES_USER};password=${POSTGRES_PASSWORD}
+      - ConnectionStrings__RedisConnectionString=redis:6379,password=${REDIS_PASSWORD},abortConnect=false
     ports:
       - "5002:80"
     depends_on:
@@ -29,9 +28,9 @@ services:
     image: postgres:15
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=Pass@word
-      - POSTGRES_DB=bill_split_db
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DATABASE}
     ports:
       - "8001:5432"
     volumes:
@@ -43,6 +42,6 @@ services:
     ports:
       - "6379:6379"
     environment:
-      - REDIS_PASSWORD=Pass@word
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=6379
       - REDIS_DATABASES=1

@@ -1,0 +1,24 @@
+name: Build and Deploy Docker 
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    environment: production
+    env: 
+      REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
+      POSTGRES_USER: ${{secrets.APPLICATION_CONTEXT_USERNAME}}
+      POSTGRES_PASSWORD: ${{secrets.APPLICATION_CONTEXT_PASSWORD}}
+      POSTGRES_DATABASE: ${{secrets.APPLICATION_CONTEXT_DATABASE}}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Login to Docker Hub
+      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Build and Push Docker Compose
+      run: |
+        docker compose -p bill-split -f deploy/bill-split.yml build
+        docker-compose -p bill-split -f deploy/bill-split.yml push
