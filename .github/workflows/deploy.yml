@@ -19,5 +19,5 @@ jobs:
       run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Build and Push Docker Compose
       run: |
-        docker compose -p bill-split -f deploy/bill-split.yml up -d
+        docker compose -p bill-split -f deploy/bill-split.yml build
         docker-compose push
