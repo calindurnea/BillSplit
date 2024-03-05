@@ -51,6 +51,8 @@ public static class StartupExtensions
     internal static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>().ThrowIfNull();
+
+        Console.WriteLine(jwtSettings);
         
         services.AddAuthentication(options =>
         {
