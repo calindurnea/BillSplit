@@ -9,5 +9,5 @@ public interface IApplicationDbContext
     DbSet<BillGroup> BillGroups { get; }
     DbSet<UserBillGroup> UserBillGroups { get; }
     DbSet<BillAllocation> BillAllocations { get; }
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

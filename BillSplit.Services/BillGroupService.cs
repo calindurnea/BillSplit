@@ -32,7 +32,7 @@ internal sealed class BillGroupService : IBillGroupService
         _billAllocationRepository = billAllocationRepository ?? throw new ArgumentNullException(nameof(billAllocationRepository));
     }
 
-    public async Task<BillGroupDto> GetBillGroups(UserClaims user, long id, CancellationToken cancellationToken = default)
+    public async Task<BillGroupDto> GetBillGroups(UserClaims user, long id, CancellationToken cancellationToken)
     {
         var billGroup = (await _billGroupRepository.GetBillGroups(cancellationToken, true, id)).FirstOrDefault().ThrowIfNull(id);
 
@@ -78,7 +78,7 @@ internal sealed class BillGroupService : IBillGroupService
                         allocation.PaidAmount)))));
     }
 
-    public async Task<IEnumerable<UserBillGroupDto>> GetBillGroups(UserClaims user, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserBillGroupDto>> GetBillGroups(UserClaims user, CancellationToken cancellationToken)
     {
         var userBillGroupIds = (await _userBillGroupRepository.GetUserBillGroupIds(user.Id, cancellationToken)).ThrowIfNull(user.Id).ToList();
         var billGroups = (await _billGroupRepository.GetBillGroups(cancellationToken, true, userBillGroupIds.ToArray()))
@@ -115,7 +115,7 @@ internal sealed class BillGroupService : IBillGroupService
         return userOwedAllocations - userOwingAllocations;
     }
 
-    public async Task<long> CreateBillGroup(UserClaims user, CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default)
+    public async Task<long> CreateBillGroup(UserClaims user, CreateBillGroupDto createBillGroup, CancellationToken cancellationToken)
     {
         await ValidateAllUsersExist(createBillGroup.UserIds, cancellationToken);
 
@@ -132,7 +132,7 @@ internal sealed class BillGroupService : IBillGroupService
         return billGroup.Id;
     }
 
-    public async Task UpdateBillGroupName(UserClaims user, long id, UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken = default)
+    public async Task UpdateBillGroupName(UserClaims user, long id, UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken)
     {
         var billGroup = await GetBillGroupIfAccessible(user, id, false, cancellationToken);
 
@@ -142,7 +142,7 @@ internal sealed class BillGroupService : IBillGroupService
         await _billGroupRepository.UpdateBillGroup(billGroup, cancellationToken);
     }
 
-    public async Task RemoveBillGroupUser(UserClaims user, long id, long userId, CancellationToken cancellationToken = default)
+    public async Task RemoveBillGroupUser(UserClaims user, long id, long userId, CancellationToken cancellationToken)
     {
         var billGroup = await GetBillGroupIfAccessible(user, id, false, cancellationToken);
 
@@ -167,7 +167,7 @@ internal sealed class BillGroupService : IBillGroupService
         await _userBillGroupRepository.UpdateUserBillGroup(userBillGroup, cancellationToken);
     }
 
-    public async Task AddBillGroupUser(UserClaims user, long id, long userId, CancellationToken cancellationToken = default)
+    public async Task AddBillGroupUser(UserClaims user, long id, long userId, CancellationToken cancellationToken)
     {
         var billGroup = await GetBillGroupIfAccessible(user, id, false, cancellationToken);
 
@@ -183,7 +183,7 @@ internal sealed class BillGroupService : IBillGroupService
         await _billGroupRepository.UpdateBillGroup(billGroup, cancellationToken);
     }
 
-    public async Task DeleteBillGroup(UserClaims user, long id, CancellationToken cancellationToken = default)
+    public async Task DeleteBillGroup(UserClaims user, long id, CancellationToken cancellationToken)
     {
         BillGroup billGroup;
         try
@@ -223,7 +223,7 @@ internal sealed class BillGroupService : IBillGroupService
         return billGroup;
     }
 
-    private async Task ValidateAllUsersExist(IEnumerable<long> userIds, CancellationToken cancellationToken = default)
+    private async Task ValidateAllUsersExist(IEnumerable<long> userIds, CancellationToken cancellationToken)
     {
         await _userService.GetUsers(userIds.ToHashSet(), cancellationToken);
     }

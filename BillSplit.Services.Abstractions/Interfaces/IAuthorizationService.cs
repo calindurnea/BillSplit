@@ -1,6 +1,5 @@
 ﻿using System.Security.Claims;
 using BillSplit.Contracts.Authorization;
-using BillSplit.Contracts.User;
 
 namespace BillSplit.Services.Abstractions.Interfaces;
 

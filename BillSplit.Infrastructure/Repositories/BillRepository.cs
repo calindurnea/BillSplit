@@ -14,7 +14,7 @@ internal sealed class BillRepository : IBillRepository
         _applicationContext = applicationContext ?? throw new ArgumentNullException(nameof(applicationContext));
     }
 
-    public async Task<Bill> CreateBill(Bill bill, CancellationToken cancellationToken = default)
+    public async Task<Bill> CreateBill(Bill bill, CancellationToken cancellationToken)
     {
         var result = await _applicationContext.Bills.AddAsync(bill, cancellationToken);
         await _applicationContext.SaveChangesAsync(cancellationToken);
@@ -34,7 +34,7 @@ internal sealed class BillRepository : IBillRepository
         return await billsQuery.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
     }
 
-    public async Task UpdateBill(Bill bill, CancellationToken cancellationToken = default)
+    public async Task UpdateBill(Bill bill, CancellationToken cancellationToken)
     {
         _applicationContext.Bills.Update(bill);
         await _applicationContext.SaveChangesAsync(cancellationToken);

@@ -34,7 +34,7 @@ public class UsersController : ControllerBase
     [HttpGet("current", Name = nameof(GetCurrentUser))]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetCurrentUser()
+    public async Task<IActionResult> GetCurrentUser(CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
         var userDto = await _userService.GetUser(user.Id);
@@ -48,7 +48,7 @@ public class UsersController : ControllerBase
     /// <returns>A list containing all of the users</returns>
     [HttpGet(Name = nameof(GetAllUsers))]
     [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
     {
         var users = await _userService.GetUsers(cancellationToken);
         return Ok(users);
@@ -58,10 +58,11 @@ public class UsersController : ControllerBase
     /// Returns the user with the specified id if any is found
     /// </summary>
     /// <param name="id">Id of the user to return</param>
+    /// <param name="cancellationToken"></param>
     /// <returns>The user or not found</returns>
     [HttpGet("{id:long}", Name = nameof(GetUserWithId))]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetUserWithId([FromRoute, BindRequired] long id)
+    public async Task<IActionResult> GetUserWithId([FromRoute, BindRequired] long id, CancellationToken cancellationToken)
     {
         var user = await _userService.GetUser(id);
         return Ok(user);
@@ -73,12 +74,13 @@ public class UsersController : ControllerBase
     /// <remarks>Only the current user information can be updated</remarks>
     /// <param name="id">User id to update</param>
     /// <param name="upsertUser">User data to update</param>
+    /// <param name="cancellationToken"></param>
     /// <returns>No content if successful, an error otherwise</returns>
     [HttpPut("{id:long}", Name = nameof(UpdateUser))]
     [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> UpdateUser([FromRoute, BindRequired] long id, [FromBody, Required] UpsertUserDto upsertUser)
+    public async Task<IActionResult> UpdateUser([FromRoute, BindRequired] long id, [FromBody, Required] UpsertUserDto upsertUser, CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
 
@@ -96,12 +98,13 @@ public class UsersController : ControllerBase
     /// </summary>
     /// <remarks>To fully setup the account call <see cref="AuthorizationController.SetPassword(SetInitialPasswordDto)"/> with the password and user id</remarks>
     /// <param name="upsertUser">User data to create</param>
+    /// <param name="cancellationToken"></param>
     [HttpPost(Name = nameof(CreateUser))]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [AllowAnonymous]
-    public async Task<IActionResult> CreateUser([FromBody] UpsertUserDto upsertUser)
+    public async Task<IActionResult> CreateUser([FromBody] UpsertUserDto upsertUser, CancellationToken cancellationToken)
     {
         var id = await _userService.CreateUser(upsertUser);
         return CreatedAtAction(nameof(GetUserWithId), new { id }, new { id });

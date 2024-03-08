@@ -12,7 +12,7 @@ services:
       # Server - Framework settings
       - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
       - ASPNETCORE_URLS=http://+:80;
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       # Server - Application settings
       - ConnectionStrings__ApplicationContext=host=postgresql;port=5432;database=bill_split_db;username=postgres;password=Pass@word
       - ConnectionStrings__RedisConnectionString=redis:6379,password=Pass@word,abortConnect=false

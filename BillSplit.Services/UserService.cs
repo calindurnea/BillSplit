@@ -52,7 +52,7 @@ internal sealed class UserService : IUserService
         await _userManager.UpdateAsync(user);
     }
 
-    public async Task<IEnumerable<UserDto>> GetUsers(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserDto>> GetUsers(CancellationToken cancellationToken)
     {
         var users = await _userManager.Users.ToListAsync(cancellationToken);
         return users.Select(MapToDto);
@@ -64,7 +64,7 @@ internal sealed class UserService : IUserService
         return MapToDto(user);
     }
 
-    public async Task<IEnumerable<UserDto>> GetUsers(ISet<long> ids, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserDto>> GetUsers(ISet<long> ids, CancellationToken cancellationToken)
     {
         var users = (await _userManager.Users.Where(x => ids.Contains(x.Id)).ToListAsync(cancellationToken)).ThrowIfNull();
 

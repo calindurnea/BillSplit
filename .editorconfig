@@ -68,6 +68,8 @@ dotnet_style_namespace_match_folder = true:suggestion
 dotnet_style_readonly_field = true:suggestion
 
 [*.cs]
+dotnet_analyzer_diagnostic.category-CodeQuality.severity = error
+dotnet_diagnostic.IDE0052.severity = error
 csharp_indent_labels = one_less_than_current
 csharp_space_around_binary_operators = before_and_after
 csharp_using_directive_placement = outside_namespace:silent

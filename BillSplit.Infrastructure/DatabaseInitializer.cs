@@ -43,6 +43,6 @@ internal sealed class DbInitializer
             await userManager.CreateAsync(user, "some random password");
         }
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(default);
     }
 }

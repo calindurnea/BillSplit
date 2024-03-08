@@ -28,7 +28,7 @@ internal sealed class BillService : IBillService
         _billGroupRepository = billGroupRepository ?? throw new ArgumentNullException(nameof(billGroupRepository));
     }
 
-    public async Task<BillDto> GetBill(UserClaims user, long id, CancellationToken cancellationToken = default)
+    public async Task<BillDto> GetBill(UserClaims user, long id, CancellationToken cancellationToken)
     {
         var bill = (await _billRepository.GetBill(id, true, true, cancellationToken)).ThrowIfNull(id);
 
@@ -60,7 +60,7 @@ internal sealed class BillService : IBillService
                     x.PaidAmount)));
     }
 
-    public async Task<long> UpsertBill(UserClaims user, UpsertBillDto upsertBill, CancellationToken cancellationToken = default)
+    public async Task<long> UpsertBill(UserClaims user, UpsertBillDto upsertBill, CancellationToken cancellationToken)
     {
         (await _billGroupRepository.GetBillGroups(cancellationToken, true, upsertBill.BillGroupId)).ThrowIfNull(upsertBill.BillGroupId);
 
@@ -119,7 +119,7 @@ internal sealed class BillService : IBillService
         return bill.Id;
     }
 
-    public async Task Delete(UserClaims user, long id, CancellationToken cancellationToken = default)
+    public async Task Delete(UserClaims user, long id, CancellationToken cancellationToken)
     {
         var bill = await _billRepository.GetBill(id, true, false, cancellationToken);
 

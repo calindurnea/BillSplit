@@ -11,7 +11,7 @@ public static class StartupExtensions
         if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
         {
             services.AddMemoryCache();
-            services.AddSingleton<ICacheManger, MemoryCacheManger>();
+            services.AddScoped<ICacheManger, MemoryCacheManger>();
         }
         else
         {
@@ -31,7 +31,7 @@ public static class StartupExtensions
                     configurationOptions.IncludePerformanceCountersInExceptions = true;
                 }).GetDatabase()
             );
-            services.AddSingleton<ICacheManger, RedisCacheManger>();
+            services.AddScoped<ICacheManger, RedisCacheManger>();
         }
 
         return services;

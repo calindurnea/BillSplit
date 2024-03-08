@@ -14,7 +14,7 @@ internal sealed class UserBillGroupRepository : IUserBillGroupRepository
         _applicationContext = applicationContext ?? throw new ArgumentNullException(nameof(applicationContext));
     }
 
-    public async Task<IEnumerable<long>?> GetUserBillGroupIds(long userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<long>?> GetUserBillGroupIds(long userId, CancellationToken cancellationToken)
     {
         return await _applicationContext.UserBillGroups.WithNoTracking()
             .Where(x => x.UserId == userId && !x.IsDeleted)
@@ -31,7 +31,7 @@ internal sealed class UserBillGroupRepository : IUserBillGroupRepository
                 !x.IsDeleted, cancellationToken);
     }
 
-    public async Task<IEnumerable<long>> GetBillGroupUserIds(long billGroupId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<long>> GetBillGroupUserIds(long billGroupId, CancellationToken cancellationToken)
     {
         return await _applicationContext.UserBillGroups.WithNoTracking()
             .Where(x => x.BillGroupId == billGroupId && !x.IsDeleted)
@@ -39,7 +39,7 @@ internal sealed class UserBillGroupRepository : IUserBillGroupRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task UpdateUserBillGroup(UserBillGroup userBillGroup, CancellationToken cancellationToken = default)
+    public async Task UpdateUserBillGroup(UserBillGroup userBillGroup, CancellationToken cancellationToken)
     {
         _applicationContext.UserBillGroups.Update(userBillGroup);
         await _applicationContext.SaveChangesAsync(cancellationToken);

@@ -33,7 +33,7 @@ public class BillGroupsController : ControllerBase
     /// <returns>A list of the groups</returns>
     [HttpGet(Name = nameof(GetAllBillGroups))]
     [ProducesResponseType(typeof(IEnumerable<UserBillGroupDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllBillGroups(CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetAllBillGroups(CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
         var billGroups = await _billGroupsService.GetBillGroups(user, cancellationToken);
@@ -48,7 +48,7 @@ public class BillGroupsController : ControllerBase
     /// <returns>The group if successful, an error otherwise</returns>
     [HttpGet("{id:long}", Name = nameof(GetBillGroupById))]
     [ProducesResponseType(typeof(BillGroupDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetBillGroupById([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetBillGroupById([FromRoute, BindRequired] long id, CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
         var billGroup = await _billGroupsService.GetBillGroups(user, id, cancellationToken);
@@ -65,7 +65,7 @@ public class BillGroupsController : ControllerBase
     [HttpPut("{id:long}/add-user", Name = nameof(AddBillGroupUser))]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> AddBillGroupUser([FromRoute, BindRequired] long id, [FromQuery, BindRequired] long userId, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> AddBillGroupUser([FromRoute, BindRequired] long id, [FromQuery, BindRequired] long userId, CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
         await _billGroupsService.AddBillGroupUser(user, id, userId, cancellationToken);
@@ -82,7 +82,7 @@ public class BillGroupsController : ControllerBase
     [HttpPut("{id:long}/remove-user", Name = nameof(RemoveBillGroupUser))]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> RemoveBillGroupUser([FromRoute, BindRequired] long id, [FromQuery, BindRequired] long userId, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> RemoveBillGroupUser([FromRoute, BindRequired] long id, [FromQuery, BindRequired] long userId, CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
         await _billGroupsService.RemoveBillGroupUser(user, id, userId, cancellationToken);
@@ -99,7 +99,7 @@ public class BillGroupsController : ControllerBase
     [HttpPut("{id:long}/name", Name = nameof(UpdateBillGroupName))]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> UpdateBillGroupName([FromRoute, BindRequired] long id, [FromBody, Required] UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> UpdateBillGroupName([FromRoute, BindRequired] long id, [FromBody, Required] UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
         await _billGroupsService.UpdateBillGroupName(user, id, updateBillGroupName, cancellationToken);
@@ -115,7 +115,7 @@ public class BillGroupsController : ControllerBase
     [HttpPost(Name = nameof(CreateBillGroup))]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> CreateBillGroup([FromBody, Required] CreateBillGroupDto createBillGroup, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> CreateBillGroup([FromBody, Required] CreateBillGroupDto createBillGroup, CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
         var id = await _billGroupsService.CreateBillGroup(user, createBillGroup, cancellationToken);
@@ -131,7 +131,7 @@ public class BillGroupsController : ControllerBase
     [HttpDelete("{id:long}", Name = nameof(DeleteBillGroup))]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> DeleteBillGroup([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> DeleteBillGroup([FromRoute, BindRequired] long id, CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
         await _billGroupsService.DeleteBillGroup(user, id, cancellationToken);

@@ -7,6 +7,6 @@ public class CreateBillGroupDtoValidator : AbstractValidator<CreateBillGroupDto>
 {
     public CreateBillGroupDtoValidator()
     {
-        RuleFor(_ => _.Name).NotEmpty().MaximumLength(350);
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(350);
     }
 }

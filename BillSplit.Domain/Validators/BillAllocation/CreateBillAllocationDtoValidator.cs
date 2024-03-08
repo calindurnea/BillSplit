@@ -7,7 +7,7 @@ public class CreateBillAllocationDtoValidator : AbstractValidator<CreateBillAllo
 {
     public CreateBillAllocationDtoValidator()
     {
-        RuleFor(_ => _.UserId).GreaterThan(0);
-        RuleFor(_ => _.Amount).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.UserId).GreaterThan(0);
+        RuleFor(x => x.Amount).GreaterThanOrEqualTo(0);
     }
 }

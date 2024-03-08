@@ -35,7 +35,7 @@ public class BillsController : ControllerBase
     [HttpGet("{id:long}", Name = nameof(GetBillById))]
     [ProducesResponseType(typeof(BillDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetBillById([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetBillById([FromRoute, BindRequired] long id, CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
         var billDto = await _billService.GetBill(user, id, cancellationToken);
@@ -51,7 +51,7 @@ public class BillsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> UpsertBill([FromBody, Required] UpsertBillDto upsertBill, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> UpsertBill([FromBody, Required] UpsertBillDto upsertBill, CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
         var id = await _billService.UpsertBill(user, upsertBill, cancellationToken);
@@ -66,7 +66,7 @@ public class BillsController : ControllerBase
     /// <returns>No content if successful, an error otherwise</returns>
     [HttpDelete("{id:long}", Name = nameof(DeleteBill))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> DeleteBill([FromRoute, BindRequired] long id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> DeleteBill([FromRoute, BindRequired] long id, CancellationToken cancellationToken)
     {
         var user = HttpContext.User.GetCurrentUser();
         await _billService.Delete(user, id, cancellationToken);
