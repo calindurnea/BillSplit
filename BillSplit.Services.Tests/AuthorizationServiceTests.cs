@@ -1,12 +1,11 @@
 ﻿using BillSplit.Domain.Models;
 using BillSplit.Persistence.Caching;
-using BillSplit.Services;
 using BillSplit.Services.Abstractions.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace BillSplit.Unit.Tests;
+namespace BillSplit.Services.Tests;
 
 public class AuthorizationServiceTests
 {

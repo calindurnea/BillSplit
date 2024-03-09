@@ -1,13 +1,12 @@
 ﻿using System.Globalization;
-using System.Security.Authentication;
+using System.Net;
 using System.Security.Claims;
 using BillSplit.Contracts.Authorization;
 using BillSplit.Contracts.User;
-using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
+using BillSplit.Domain.ResultHandling;
 using BillSplit.Persistence.Caching;
 using BillSplit.Services.Abstractions.Interfaces;
-using BillSplit.Services.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -41,50 +40,83 @@ internal sealed class AuthorizationService : IAuthorizationService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task SetInitialPassword(SetInitialPasswordDto request)
+    public async Task<IResult<bool>> SetInitialPassword(SetInitialPasswordDto request)
     {
         if (!string.Equals(request.Password, request.PasswordCheck, StringComparison.Ordinal))
         {
-            throw new PasswordCheckException("The password did not match with the repeated password");
+            return Result.Failure<bool>("The new passwords does not match the confirm password", HttpStatusCode.BadRequest);
         }
 
-        var user = (await _userManager.FindByIdAsync(request.UserId.ToString(CultureInfo.InvariantCulture))).ThrowIfNull();
-        await _userManager.AddPasswordAsync(user, request.Password);
+        var user = await _userManager.FindByIdAsync(request.UserId.ToString(CultureInfo.InvariantCulture));
+
+        if (user is null)
+        {
+            return Result.Failure<bool>("The specified user does not exist", HttpStatusCode.NotFound);
+        }
+        
+        var identityResult = await _userManager.AddPasswordAsync(user, request.Password);
+
+        if (!identityResult.Succeeded)
+        {
+            return Result.Failure<bool>("Password was not successfully set",
+                HttpStatusCode.BadRequest,
+                identityResult.Errors
+                    .Select(x => x.Description)
+                    .ToArray());
+        }
+        
+        return Result.Success(true);
     }
 
-    public async Task UpdatePassword(ClaimsPrincipal principal, UpdatePasswordDto request)
+    public async Task<IResult<bool>> UpdatePassword(ClaimsPrincipal principal, UpdatePasswordDto request)
     {
         if (!string.Equals(request.NewPassword, request.NewPasswordCheck, StringComparison.Ordinal))
         {
-            throw new PasswordCheckException("The new password did not match with the repeated new password");
+            return Result.Failure<bool>("The new passwords does not match the confirm password", HttpStatusCode.BadRequest);
         }
 
-        var user = (await _userManager.GetUserAsync(principal)).ThrowIfNull();
+        var user = await _userManager.GetUserAsync(principal);
 
-        await _userManager.ChangePasswordAsync(user, request.Password, request.NewPassword);
+        if (user is null)
+        {
+            return Result.Failure<bool>("The specified user does not exist", HttpStatusCode.NotFound);
+        }
+        
+        var identityResult =await _userManager.ChangePasswordAsync(user, request.Password, request.NewPassword);
+        
+        if (!identityResult.Succeeded)
+        {
+            return Result.Failure<bool>("Password was not successfully changed",
+                HttpStatusCode.BadRequest,
+                identityResult.Errors
+                    .Select(x => x.Description)
+                    .ToArray());
+        }
+        
         await Logout(user.Id);
+        return Result.Success(true);
     }
 
-    public async Task<LoginResponseDto> Login(LoginRequestDto request)
+    public async Task<IResult<LoginResponseDto>> Login(LoginRequestDto request)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
 
         if (user is null)
         {
-            throw new AuthenticationException("Wrong username or password");
+            return Result.Failure<LoginResponseDto>("Wrong username or password", HttpStatusCode.Unauthorized);
         }
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
 
         if (!isPasswordValid)
         {
-            throw new AuthenticationException("Wrong username or password");
+            return Result.Failure<LoginResponseDto>("Wrong username or password", HttpStatusCode.Unauthorized);
         }
 
         await Logout(user.Id);
 
         var (accessTokenResult, refreshTokenResult) = await GenerateLoginTokens(user);
-        return new LoginResponseDto(accessTokenResult.Token, refreshTokenResult.Token, accessTokenResult.ExpiresOn);
+        return Result.Success(new LoginResponseDto(accessTokenResult.Token, refreshTokenResult.Token, accessTokenResult.ExpiresOn));
     }
 
     private async Task<(AccessTokenResult, RefreshTokenResult)> GenerateLoginTokens(User user)
@@ -101,24 +133,40 @@ internal sealed class AuthorizationService : IAuthorizationService
         return (tokenResult, refreshTokenResult);
     }
 
-    public async Task Logout(long userId)
+    public async Task<IResult<bool>> Logout(long userId)
     {
-        await _cacheManger.RemoveData(LoggedUserCacheKeyPrefix + userId);
+        var result = await _cacheManger.RemoveData(LoggedUserCacheKeyPrefix + userId);
+
+        return result switch
+        {
+            true => Result.Success(result),
+            false => Result.Failure<bool>(new ResultError("Logout was not successful", HttpStatusCode.InternalServerError))
+        };
     }
 
-    public async Task<LoginResponseDto> RefreshToken(TokenRefreshRequestDto request)
+    public async Task<IResult<LoginResponseDto>> RefreshToken(TokenRefreshRequestDto request)
     {
-        var userClaims = GetValidatedUserClaims(request);
+        var userClaimsResult = GetValidatedUserClaims(request);
 
-        var user = await _userManager.FindByEmailAsync(userClaims.Email);
+        if (userClaimsResult is not Result.ISuccessResult<UserClaims> userClaims)
+        {
+            return Result.Failure<LoginResponseDto, UserClaims>(userClaimsResult);
+        }
+        
+        var user = await _userManager.FindByEmailAsync(userClaims.Result.Email);
 
         if (user is null)
         {
-            InvalidRefreshTokenLogger(_logger, $"User not found. User email: `{userClaims.Email}`", null);
-            throw new AuthenticationException("Invalid request");
+            InvalidRefreshTokenLogger(_logger, $"User not found. User email: `{userClaims.Result.Email}`", null);
+            return Result.Failure<LoginResponseDto>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
-        await ValidateRefreshToken(request, user);
+        var validationResult = await ValidateRefreshToken(request, user);
+
+        if (validationResult is Result.IFailureResult<bool>)
+        {
+            return Result.Failure<LoginResponseDto, bool>(validationResult);
+        }
 
         // by this point:
         // request data is valid (user claims, access token and refresh token ids and emails match
@@ -126,17 +174,17 @@ internal sealed class AuthorizationService : IAuthorizationService
         // the refresh token was found and it is the last generated one
 
         var (accessTokenResult, refreshTokenResult) = await GenerateLoginTokens(user);
-        return new LoginResponseDto(accessTokenResult.Token, refreshTokenResult.Token, accessTokenResult.ExpiresOn);
+        return Result.Success(new LoginResponseDto(accessTokenResult.Token, refreshTokenResult.Token, accessTokenResult.ExpiresOn));
     }
 
-    private async Task ValidateRefreshToken(TokenRefreshRequestDto request, User user)
+    private async Task<IResult<bool>> ValidateRefreshToken(TokenRefreshRequestDto request, User user)
     {
         var refreshTokens = await _cacheManger.GetData<string>(RefreshTokenCacheKeyPrefix + user.Id, 0, 9);
 
         if (refreshTokens.Length < 1)
         {
             InvalidRefreshTokenLogger(_logger, $"No refresh token was found for the user: `{user.Id}`", null);
-            throw new AuthenticationException("Invalid request");
+            return Result.Failure<bool>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
         // validate if the list has the token but not as the most recent (refresh token is reused => bad)
@@ -150,24 +198,26 @@ internal sealed class AuthorizationService : IAuthorizationService
             // await _cacheManger.RemoveData(RefreshTokenCacheKeyPrefix + user.Id);
             // await _userManager.RemovePasswordAsync(user);
 
-            throw new AuthenticationException("Invalid request");
+            return Result.Failure<bool>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
         // latest refresh token is not the one used
         if (!string.Equals(refreshTokens[0], request.RefreshToken, StringComparison.Ordinal))
         {
             InvalidRefreshTokenLogger(_logger, $"Refresh token does not match: `{request.RefreshToken}`", null);
-            throw new AuthenticationException("Invalid request");
+            return Result.Failure<bool>("Invalid request", HttpStatusCode.Unauthorized);
         }
+
+        return Result.Success(true);
     }
 
-    private UserClaims GetValidatedUserClaims(TokenRefreshRequestDto request)
+    private IResult<UserClaims> GetValidatedUserClaims(TokenRefreshRequestDto request)
     {
         // validate access token is correct and has claims
         if (!_jwtTokenGenerator.TryGetClaimsFromExpiredToken(request.Token, out var accessTokenClaims))
         {
             InvalidRefreshTokenLogger(_logger, $"Invalid access token: `{request.Token}`", null);
-            throw new AuthenticationException("Invalid request");
+            return Result.Failure<UserClaims>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
         // validate refresh token and get data
@@ -175,13 +225,13 @@ internal sealed class AuthorizationService : IAuthorizationService
         if (deconstructedRefreshToken is null)
         {
             InvalidRefreshTokenLogger(_logger, $"Invalid refresh token: `{request.RefreshToken}`", null);
-            throw new AuthenticationException("Invalid request");
+            return Result.Failure<UserClaims>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
         if (deconstructedRefreshToken.Expiry < DateTime.UtcNow)
         {
             InvalidRefreshTokenLogger(_logger, $"Expired refresh token: `{request.RefreshToken}`", null);
-            throw new AuthenticationException("Invalid request");
+            return Result.Failure<UserClaims>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
         var accessTokenId = long.Parse(accessTokenClaims.First(x => x.Type == ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
@@ -191,16 +241,16 @@ internal sealed class AuthorizationService : IAuthorizationService
         if (accessTokenId != deconstructedRefreshToken.Id)
         {
             InvalidRefreshTokenLogger(_logger, $"Mismatching ids. Found: `{accessTokenId}, {deconstructedRefreshToken.Id}`", null);
-            throw new AuthenticationException("Invalid request");
+            return Result.Failure<UserClaims>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
         // validate emails match
         if (!string.Equals(accessTokenEmail, deconstructedRefreshToken.Email, StringComparison.OrdinalIgnoreCase))
         {
             InvalidRefreshTokenLogger(_logger, $"Mismatching emails. Found: `{accessTokenEmail}, {deconstructedRefreshToken.Email}`", null);
-            throw new AuthenticationException("Invalid request");
+            return Result.Failure<UserClaims>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
-        return new UserClaims(accessTokenId, accessTokenEmail);
+        return Result.Success(new UserClaims(accessTokenId, accessTokenEmail));
     }
 }

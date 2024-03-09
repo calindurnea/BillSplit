@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using BillSplit.Domain.Configurations;
-using BillSplit.Services.Extensions;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
@@ -50,8 +49,10 @@ public static class StartupExtensions
 
     internal static IServiceCollection ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>().ThrowIfNull();
+        var jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>();
 
+        ArgumentNullException.ThrowIfNull(jwtSettings);
+        
         Console.WriteLine(jwtSettings);
         
         services.AddAuthentication(options =>

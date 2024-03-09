@@ -1,13 +1,14 @@
 ﻿using System.Security.Claims;
 using BillSplit.Contracts.Authorization;
+using BillSplit.Domain.ResultHandling;
 
 namespace BillSplit.Services.Abstractions.Interfaces;
 
 public interface IAuthorizationService
 {
-    Task SetInitialPassword(SetInitialPasswordDto request);
-    Task UpdatePassword(ClaimsPrincipal user, UpdatePasswordDto request);
-    Task<LoginResponseDto> Login(LoginRequestDto request);
-    Task Logout(long userId);
-    Task<LoginResponseDto> RefreshToken(TokenRefreshRequestDto request);
+    Task<IResult<bool>> SetInitialPassword(SetInitialPasswordDto request);
+    Task<IResult<bool>> UpdatePassword(ClaimsPrincipal user, UpdatePasswordDto request);
+    Task<IResult<LoginResponseDto>> Login(LoginRequestDto request);
+    Task<IResult<bool>> Logout(long userId);
+    Task<IResult<LoginResponseDto>> RefreshToken(TokenRefreshRequestDto request);
 }

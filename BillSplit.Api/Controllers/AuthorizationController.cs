@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using BillSplit.Api.Extensions;
 using BillSplit.Contracts.Authorization;
+using BillSplit.Domain.ResultHandling;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using IAuthorizationService = BillSplit.Services.Abstractions.Interfaces.IAuthorizationService;
@@ -38,8 +39,8 @@ public class AuthorizationController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SetPassword([FromBody, Required] SetInitialPasswordDto setInitialPassword)
     {
-        await _authorizationService.SetInitialPassword(setInitialPassword);
-        return NoContent();
+        var result = await _authorizationService.SetInitialPassword(setInitialPassword);
+        return ResultExtensions.HandleResult(result, NoContent());
     }
 
     /// <summary>
@@ -53,8 +54,8 @@ public class AuthorizationController : ControllerBase
     public async Task<IActionResult> UpdatePassword([FromBody, Required] UpdatePasswordDto updatePassword)
     {
         var user = HttpContext.User;
-        await _authorizationService.UpdatePassword(user, updatePassword);
-        return NoContent();
+        var result = await _authorizationService.UpdatePassword(user, updatePassword);
+        return ResultExtensions.HandleResult(result, NoContent());
     }
 
     /// <summary>
@@ -67,8 +68,8 @@ public class AuthorizationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponseDto))]
     public async Task<IActionResult> Login([FromBody, Required] LoginRequestDto loginRequest)
     {
-        var response = await _authorizationService.Login(loginRequest);
-        return Ok(response);
+        var result = await _authorizationService.Login(loginRequest);
+        return ResultExtensions.HandleResult(result, Ok);
     }
 
     /// <summary>
@@ -80,17 +81,19 @@ public class AuthorizationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponseDto))]
     public async Task<IActionResult> Refresh([FromBody, Required] TokenRefreshRequestDto tokenRefreshRequest)
     {
-        var response = await _authorizationService.RefreshToken(tokenRefreshRequest);
-        return Ok(response);
+        var result = await _authorizationService.RefreshToken(tokenRefreshRequest);
+        return ResultExtensions.HandleResult(result, Ok);
     }
 
     /// <summary>
     /// Logs out user
     /// </summary>
     [HttpPost("logout", Name = nameof(Logout))]
-    public async Task Logout()
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Logout()
     {
         var user = HttpContext.User.GetCurrentUser();
-        await _authorizationService.Logout(user.Id);
+        var result = await _authorizationService.Logout(user.Id);
+        return ResultExtensions.HandleResult(result, NoContent());
     }
 }

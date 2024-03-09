@@ -2,8 +2,11 @@
 using BillSplit.Contracts.BillAllocation;
 using BillSplit.Domain.Validators.BillAllocation;
 using FluentValidation;
+using FluentValidation.Results;
 
 namespace BillSplit.Domain.Validators.Bill;
+
+
 
 public class CreateBillDtoValidator : AbstractValidator<UpsertBillDto>
 {
@@ -21,6 +24,11 @@ public class CreateBillDtoValidator : AbstractValidator<UpsertBillDto>
             .Must((_, billAllocations) => HaveUniqueUserIds(billAllocations))
             .WithMessage("A user can have maximum one bill allocation");
         RuleForEach(d => d.BillAllocations).SetValidator(new CreateBillAllocationDtoValidator());
+    }
+
+    protected override void RaiseValidationException(ValidationContext<UpsertBillDto> context, ValidationResult result)
+    {
+        base.RaiseValidationException(context, result);
     }
 
     private static bool HaveUniqueUserIds(IEnumerable<CreateBillAllocationDto> billAllocations)

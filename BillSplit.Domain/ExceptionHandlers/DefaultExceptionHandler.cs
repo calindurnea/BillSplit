@@ -25,11 +25,6 @@ public class DefaultExceptionHandler : IExceptionHandler
 
         switch (exception)
         {
-            case ForbiddenException:
-            case UnauthorizedAccessException:
-                httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                await httpContext.Response.WriteAsJsonAsync(BuildProblemDetails(httpContext, exception, HttpStatusCode.Forbidden), cancellationToken);
-                break;
             case InvalidBillAllocationSetupException:
             case UnsettledBillAllocationsException:
                 httpContext.Response.StatusCode = (int)HttpStatusCode.Conflict;
@@ -43,6 +38,11 @@ public class DefaultExceptionHandler : IExceptionHandler
             case UserCreationException:
                 httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 await httpContext.Response.WriteAsJsonAsync(BuildProblemDetails(httpContext, exception, HttpStatusCode.BadRequest), cancellationToken);
+                break;
+            case ForbiddenException:
+            case UnauthorizedAccessException:
+                httpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                await httpContext.Response.WriteAsJsonAsync(BuildProblemDetails(httpContext, exception, HttpStatusCode.Forbidden), cancellationToken);
                 break;
             case AuthenticationException:
                 httpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
