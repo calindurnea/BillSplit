@@ -22,8 +22,8 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
     private readonly JwtSettings _jwtSettings;
     private readonly ILogger<JwtTokenGenerator> _logger;
 
-    private const int BearerTokenExpirationMinutes = 10;
-    private const int RefreshTokenExpirationMinutes = 30;
+    private const int BearerTokenExpirationSeconds = 600;
+    private const int RefreshTokenExpirationSeconds = 1800;
 
     private static readonly Action<ILogger, Exception> ExpiredTokenValidationLogger =
         LoggerMessage.Define(
@@ -47,7 +47,7 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
     {
         try
         {
-            var expiration = DateTime.UtcNow.AddMinutes(BearerTokenExpirationMinutes);
+            var expiration = DateTime.UtcNow.AddSeconds(BearerTokenExpirationSeconds);
 
             var claimsResult = CreateClaims(user);
 
@@ -74,6 +74,7 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
         {
             var tokenValidationParameters = TokenValidationConfiguration.Get(_jwtSettings);
             tokenValidationParameters.LifetimeValidator = null;
+            tokenValidationParameters.ValidateLifetime = false;
             var tokenHandler = new JwtSecurityTokenHandler();
             tokenHandler.ValidateToken(accessToken, tokenValidationParameters, out var validatedToken);
 
@@ -99,7 +100,7 @@ internal sealed class JwtTokenGenerator : IJwtTokenGenerator
             Debug.Assert(user.Id != 0);
             Debug.Assert(!string.IsNullOrWhiteSpace(user.Email));
 
-            var expiration = DateTime.UtcNow.AddMinutes(RefreshTokenExpirationMinutes).Ticks;
+            var expiration = DateTime.UtcNow.AddSeconds(RefreshTokenExpirationSeconds).Ticks;
             var bytes = Encoding.UTF8.GetBytes($"{user.Id}:{user.Email}:{expiration}");
             var randomNumber = new byte[64];
             using var generator = RandomNumberGenerator.Create();
