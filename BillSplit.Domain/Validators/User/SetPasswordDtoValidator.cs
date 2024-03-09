@@ -10,6 +10,6 @@ public class SetPasswordDtoValidator : AbstractValidator<SetInitialPasswordDto>
         RuleFor(u => u.UserId).GreaterThan(0);
         RuleFor(u => u.Password).NotEmpty().MinimumLength(6);
         RuleFor(u => u.Password).Equal(u => u.PasswordCheck)
-            .WithMessage("The new passwords does not match the confirm password");
+            .WithMessage("The new password does not match the confirm password");
     }
 }

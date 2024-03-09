@@ -1,7 +1,7 @@
 ﻿using BillSplit.Contracts.BillGroup;
 using FluentValidation;
 
-namespace BillSplit.Domain.Validators.BillGroup;
+namespace BillSplit.Domain.Validators;
 
 public class CreateBillGroupDtoValidator : AbstractValidator<CreateBillGroupDto>
 {

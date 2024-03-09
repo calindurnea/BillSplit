@@ -1,7 +1,7 @@
 ﻿using BillSplit.Contracts.BillAllocation;
 using FluentValidation;
 
-namespace BillSplit.Domain.Validators.BillAllocation;
+namespace BillSplit.Domain.Validators;
 
 public class CreateBillAllocationDtoValidator : AbstractValidator<CreateBillAllocationDto>
 {

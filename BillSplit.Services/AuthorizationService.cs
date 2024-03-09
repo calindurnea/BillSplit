@@ -44,7 +44,7 @@ internal sealed class AuthorizationService : IAuthorizationService
     {
         if (!string.Equals(request.Password, request.PasswordCheck, StringComparison.Ordinal))
         {
-            return Result.Failure<bool>("The new passwords does not match the confirm password", HttpStatusCode.BadRequest);
+            return Result.Failure<bool>("The new password does not match the confirm password", HttpStatusCode.BadRequest);
         }
 
         var user = await _userManager.FindByIdAsync(request.UserId.ToString(CultureInfo.InvariantCulture));
@@ -72,7 +72,7 @@ internal sealed class AuthorizationService : IAuthorizationService
     {
         if (!string.Equals(request.NewPassword, request.NewPasswordCheck, StringComparison.Ordinal))
         {
-            return Result.Failure<bool>("The new passwords does not match the confirm password", HttpStatusCode.BadRequest);
+            return Result.Failure<bool>("The new password does not match the confirm password", HttpStatusCode.BadRequest);
         }
 
         var user = await _userManager.GetUserAsync(principal);
