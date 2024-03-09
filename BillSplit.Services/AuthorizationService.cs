@@ -53,7 +53,7 @@ internal sealed class AuthorizationService : IAuthorizationService
         {
             return Result.Failure<bool>("The specified user does not exist", HttpStatusCode.NotFound);
         }
-        
+
         var identityResult = await _userManager.AddPasswordAsync(user, request.Password);
 
         if (!identityResult.Succeeded)
@@ -64,7 +64,7 @@ internal sealed class AuthorizationService : IAuthorizationService
                     .Select(x => x.Description)
                     .ToArray());
         }
-        
+
         return Result.Success(true);
     }
 
@@ -81,9 +81,9 @@ internal sealed class AuthorizationService : IAuthorizationService
         {
             return Result.Failure<bool>("The specified user does not exist", HttpStatusCode.NotFound);
         }
-        
-        var identityResult =await _userManager.ChangePasswordAsync(user, request.Password, request.NewPassword);
-        
+
+        var identityResult = await _userManager.ChangePasswordAsync(user, request.Password, request.NewPassword);
+
         if (!identityResult.Succeeded)
         {
             return Result.Failure<bool>("Password was not successfully changed",
@@ -92,7 +92,7 @@ internal sealed class AuthorizationService : IAuthorizationService
                     .Select(x => x.Description)
                     .ToArray());
         }
-        
+
         await Logout(user.Id);
         return Result.Success(true);
     }
@@ -115,22 +115,41 @@ internal sealed class AuthorizationService : IAuthorizationService
 
         await Logout(user.Id);
 
-        var (accessTokenResult, refreshTokenResult) = await GenerateLoginTokens(user);
+        var loginTokensResult = await GenerateLoginTokens(user);
+
+        if (loginTokensResult is not Result.ISuccessResult<(AccessTokenResult, RefreshTokenResult)> loginTokens)
+        {
+            return Result.Failure<LoginResponseDto, (AccessTokenResult, RefreshTokenResult)>(loginTokensResult);
+        }
+
+        var (accessTokenResult, refreshTokenResult) = loginTokens.Result;
+
         return Result.Success(new LoginResponseDto(accessTokenResult.Token, refreshTokenResult.Token, accessTokenResult.ExpiresOn));
     }
 
-    private async Task<(AccessTokenResult, RefreshTokenResult)> GenerateLoginTokens(User user)
+    private async Task<IResult<(AccessTokenResult, RefreshTokenResult)>> GenerateLoginTokens(User user)
     {
         var tokenResult = _jwtTokenGenerator.CreateToken(user);
+
+        if (tokenResult is not Result.ISuccessResult<AccessTokenResult> token)
+        {
+            return Result.Failure<(AccessTokenResult, RefreshTokenResult), AccessTokenResult>(tokenResult);
+        }
+
         var refreshTokenResult = _jwtTokenGenerator.CreateRefreshToken(user);
+
+        if (refreshTokenResult is not Result.ISuccessResult<RefreshTokenResult> refreshToken)
+        {
+            return Result.Failure<(AccessTokenResult, RefreshTokenResult), RefreshTokenResult>(refreshTokenResult);
+        }
 
         await _cacheManger.SetData(
             LoggedUserCacheKeyPrefix + user.Id,
             user.Id.ToString(CultureInfo.InvariantCulture),
-            tokenResult.ExpiresOn - DateTime.UtcNow + TimeSpan.FromSeconds(30));
+            token.Result.ExpiresOn - DateTime.UtcNow + TimeSpan.FromSeconds(30));
 
-        await _cacheManger.PrePendData(RefreshTokenCacheKeyPrefix + user.Id, refreshTokenResult.Token);
-        return (tokenResult, refreshTokenResult);
+        await _cacheManger.PrePendData(RefreshTokenCacheKeyPrefix + user.Id, refreshToken.Result.Token);
+        return Result.Success((token.Result, refreshToken.Result));
     }
 
     public async Task<IResult<bool>> Logout(long userId)
@@ -152,9 +171,9 @@ internal sealed class AuthorizationService : IAuthorizationService
         {
             return Result.Failure<LoginResponseDto, UserClaims>(userClaimsResult);
         }
-        
-        var user = await _userManager.FindByEmailAsync(userClaims.Result.Email);
 
+        var user = await _userManager.FindByEmailAsync(userClaims.Result.Email);
+        
         if (user is null)
         {
             InvalidRefreshTokenLogger(_logger, $"User not found. User email: `{userClaims.Result.Email}`", null);
@@ -173,7 +192,14 @@ internal sealed class AuthorizationService : IAuthorizationService
         // the user exists in the db
         // the refresh token was found and it is the last generated one
 
-        var (accessTokenResult, refreshTokenResult) = await GenerateLoginTokens(user);
+        var loginTokensResult = await GenerateLoginTokens(user);
+
+        if (loginTokensResult is not Result.ISuccessResult<(AccessTokenResult, RefreshTokenResult)> loginTokens)
+        {
+            return Result.Failure<LoginResponseDto, (AccessTokenResult, RefreshTokenResult)>(loginTokensResult);
+        }
+
+        var (accessTokenResult, refreshTokenResult) = loginTokens.Result;
         return Result.Success(new LoginResponseDto(accessTokenResult.Token, refreshTokenResult.Token, accessTokenResult.ExpiresOn));
     }
 
@@ -214,40 +240,41 @@ internal sealed class AuthorizationService : IAuthorizationService
     private IResult<UserClaims> GetValidatedUserClaims(TokenRefreshRequestDto request)
     {
         // validate access token is correct and has claims
-        if (!_jwtTokenGenerator.TryGetClaimsFromExpiredToken(request.Token, out var accessTokenClaims))
+        var accessTokenClaimsResult = _jwtTokenGenerator.TryGetClaimsFromExpiredToken(request.Token); 
+        if (accessTokenClaimsResult is not Result.ISuccessResult<HashSet<Claim>> accessTokenClaims)
         {
             InvalidRefreshTokenLogger(_logger, $"Invalid access token: `{request.Token}`", null);
             return Result.Failure<UserClaims>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
         // validate refresh token and get data
-        var deconstructedRefreshToken = _jwtTokenGenerator.DeconstructRefreshToken(request.RefreshToken);
-        if (deconstructedRefreshToken is null)
+        var deconstructedRefreshTokenResult = _jwtTokenGenerator.DeconstructRefreshToken(request.RefreshToken);
+        if (deconstructedRefreshTokenResult is not Result.ISuccessResult<DeconstructedRefreshToken> deconstructedRefreshToken)
         {
             InvalidRefreshTokenLogger(_logger, $"Invalid refresh token: `{request.RefreshToken}`", null);
             return Result.Failure<UserClaims>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
-        if (deconstructedRefreshToken.Expiry < DateTime.UtcNow)
+        if (deconstructedRefreshToken.Result.Expiry < DateTime.UtcNow)
         {
             InvalidRefreshTokenLogger(_logger, $"Expired refresh token: `{request.RefreshToken}`", null);
             return Result.Failure<UserClaims>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
-        var accessTokenId = long.Parse(accessTokenClaims.First(x => x.Type == ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
-        var accessTokenEmail = accessTokenClaims.First(x => x.Type == ClaimTypes.Email).Value;
+        var accessTokenId = long.Parse(accessTokenClaims.Result.First(x => x.Type == ClaimTypes.NameIdentifier).Value, CultureInfo.InvariantCulture);
+        var accessTokenEmail = accessTokenClaims.Result.First(x => x.Type == ClaimTypes.Email).Value;
 
         // validate ids match
-        if (accessTokenId != deconstructedRefreshToken.Id)
+        if (accessTokenId != deconstructedRefreshToken.Result.Id)
         {
-            InvalidRefreshTokenLogger(_logger, $"Mismatching ids. Found: `{accessTokenId}, {deconstructedRefreshToken.Id}`", null);
+            InvalidRefreshTokenLogger(_logger, $"Mismatching ids. Found: `{accessTokenId}, {deconstructedRefreshToken.Result.Id}`", null);
             return Result.Failure<UserClaims>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
         // validate emails match
-        if (!string.Equals(accessTokenEmail, deconstructedRefreshToken.Email, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(accessTokenEmail, deconstructedRefreshToken.Result.Email, StringComparison.OrdinalIgnoreCase))
         {
-            InvalidRefreshTokenLogger(_logger, $"Mismatching emails. Found: `{accessTokenEmail}, {deconstructedRefreshToken.Email}`", null);
+            InvalidRefreshTokenLogger(_logger, $"Mismatching emails. Found: `{accessTokenEmail}, {deconstructedRefreshToken.Result.Email}`", null);
             return Result.Failure<UserClaims>("Invalid request", HttpStatusCode.Unauthorized);
         }
 
