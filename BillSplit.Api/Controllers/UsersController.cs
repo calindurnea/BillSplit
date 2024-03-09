@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Net;
 using BillSplit.Api.Extensions;
 using BillSplit.Contracts.Authorization;
 using BillSplit.Contracts.User;
 using BillSplit.Domain.Exceptions;
+using BillSplit.Domain.ResultHandling;
 using BillSplit.Services.Abstractions.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,9 +38,15 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCurrentUser(CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        var userDto = await _userService.GetUser(user.Id);
-        return Ok(userDto);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> userClaims)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        var result = await _userService.GetUser(userClaims.Result.Id);
+        return ResultExtensions.HandleResult(result, Ok);
     }
 
     /// <summary>
@@ -82,11 +90,16 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateUser([FromRoute, BindRequired] long id, [FromBody, Required] UpsertUserDto upsertUser, CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
+        var userResult = HttpContext.User.GetCurrentUserResult();
 
-        if (user.Id != id)
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
         {
-            throw new ForbiddenException("You can only update your own information");
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        if (user.Result.Id != id)
+        {
+            return ResultExtensions.HandleFailedResult(Result.Failure<UserClaims>("You can only update your own information", HttpStatusCode.Forbidden));
         }
 
         await _userService.UpdateUser(id, upsertUser);

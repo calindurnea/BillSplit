@@ -2,6 +2,7 @@
 using BillSplit.Contracts.User;
 using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
+using BillSplit.Domain.ResultHandling;
 using BillSplit.Services.Abstractions.Interfaces;
 using BillSplit.Services.Extensions;
 using Microsoft.AspNetCore.Identity;
@@ -58,7 +59,7 @@ internal sealed class UserService : IUserService
         return users.Select(MapToDto);
     }
 
-    public async Task<UserDto> GetUser(long id)
+    public async Task<IResult<UserDto>> GetUser(long id)
     {
         var user = (await _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture))).ThrowIfNull(id);
         return MapToDto(user);
