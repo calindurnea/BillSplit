@@ -9,6 +9,7 @@ public class UpdatePasswordDtoValidator : AbstractValidator<UpdatePasswordDto>
     {
         RuleFor(u => u.Password).NotEmpty().MinimumLength(6);
         RuleFor(u => u.NewPassword).NotEqual(u => u.Password);
-        RuleFor(u => u.NewPassword).Equal(u => u.NewPasswordCheck);
+        RuleFor(u => u.NewPassword).Equal(u => u.NewPasswordCheck)
+            .WithMessage("The new passwords does not match the confirm password");
     }
 }

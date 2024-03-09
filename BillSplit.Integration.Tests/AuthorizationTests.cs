@@ -84,7 +84,7 @@ public class AuthorizationTests : IClassFixture<CustomWebApplicationFactory<Prog
 
         // Logout
         var logoutResponse = await _httpClient.PostAsync("/api/authorization/logout", null);
-        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, logoutResponse.StatusCode);
 
         // Get current user info with the logged out token
         var currentUserAfterLogoutResponse = await _httpClient.GetAsync("/api/users/current");
