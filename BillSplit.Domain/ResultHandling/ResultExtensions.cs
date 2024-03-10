@@ -23,6 +23,13 @@ public static class ResultExtensions
             _ => throw new InvalidOperationException("Operation result did not match any expected type")
         };
     }
+
+    public static IActionResult HandleFailedResult<TValue>(IResult<TValue> result)
+    {
+        var failedResult = result as Result.IFailureResult<TValue>;
+        ArgumentNullException.ThrowIfNull(failedResult);
+        return HandleFailedResult(failedResult);
+    }
     
     private static ObjectResult HandleFailedResult<TValue>(Result.IFailureResult<TValue> failure)
     {

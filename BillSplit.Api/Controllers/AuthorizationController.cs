@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using BillSplit.Api.Extensions;
 using BillSplit.Contracts.Authorization;
+using BillSplit.Contracts.User;
 using BillSplit.Domain.ResultHandling;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -92,8 +93,14 @@ public class AuthorizationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Logout()
     {
-        var user = HttpContext.User.GetCurrentUser();
-        var result = await _authorizationService.Logout(user.Id);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        var result = await _authorizationService.Logout(user.Result.Id);
         return ResultExtensions.HandleResult(result, NoContent());
     }
 }

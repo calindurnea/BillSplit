@@ -58,11 +58,10 @@ internal sealed class AuthorizationService : IAuthorizationService
 
         if (!identityResult.Succeeded)
         {
-            return Result.Failure<bool>("Password was not successfully set",
+            return Result.Failure<bool>(
+                "Password was not successfully set",
                 HttpStatusCode.BadRequest,
-                identityResult.Errors
-                    .Select(x => x.Description)
-                    .ToArray());
+                identityResult.Errors.Select(x => x.Description).ToArray());
         }
 
         return Result.Success(true);
