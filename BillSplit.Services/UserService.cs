@@ -1,12 +1,9 @@
 ﻿using System.Globalization;
 using System.Net;
-using BillSplit.Contracts.Authorization;
 using BillSplit.Contracts.User;
-using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
 using BillSplit.Domain.ResultHandling;
 using BillSplit.Services.Abstractions.Interfaces;
-using BillSplit.Services.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using BillSplit.Contracts.Bill;
+﻿using BillSplit.Contracts.Bill;
 using BillSplit.Contracts.BillAllocation;
 using BillSplit.Contracts.BillGroup;
 using BillSplit.Contracts.User;

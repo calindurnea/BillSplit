@@ -3,7 +3,6 @@ using System.Net;
 using BillSplit.Api.Extensions;
 using BillSplit.Contracts.Authorization;
 using BillSplit.Contracts.User;
-using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.ResultHandling;
 using BillSplit.Services.Abstractions.Interfaces;
 using Microsoft.AspNetCore.Authorization;
