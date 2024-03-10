@@ -5,9 +5,9 @@ namespace BillSplit.Services.Abstractions.Interfaces;
 
 public interface IUserService
 {
-    Task<IEnumerable<UserDto>> GetUsers(CancellationToken cancellationToken);
+    Task<IResult<IEnumerable<UserDto>>> GetUsers(CancellationToken cancellationToken);
     Task<IResult<UserDto>> GetUser(long id);
-    Task<IEnumerable<UserDto>> GetUsers(ISet<long> ids, CancellationToken cancellationToken);
-    Task<long> CreateUser(UpsertUserDto request);
-    Task UpdateUser(long id, UpsertUserDto request);
+    Task<IResult<IEnumerable<UserDto>>> GetUsers(ISet<long> ids, CancellationToken cancellationToken);
+    Task<IResult<long>> CreateUser(UpsertUserDto request);
+    Task<IResult<bool>> UpdateUser(long id, UpsertUserDto request);
 }

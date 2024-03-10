@@ -3,6 +3,7 @@ using BillSplit.Contracts.BillAllocation;
 using BillSplit.Contracts.User;
 using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
+using BillSplit.Domain.ResultHandling;
 using BillSplit.Persistence.Repositories.Abstractions;
 using BillSplit.Services.Abstractions.Interfaces;
 using BillSplit.Services.Extensions;
@@ -28,7 +29,7 @@ internal sealed class BillService : IBillService
         _billGroupRepository = billGroupRepository ?? throw new ArgumentNullException(nameof(billGroupRepository));
     }
 
-    public async Task<BillDto> GetBill(UserClaims user, long id, CancellationToken cancellationToken)
+    public async Task<IResult<BillDto>> GetBill(UserClaims user, long id, CancellationToken cancellationToken)
     {
         var bill = (await _billRepository.GetBill(id, true, true, cancellationToken)).ThrowIfNull(id);
 
@@ -39,25 +40,43 @@ internal sealed class BillService : IBillService
             throw new NotFoundException(nameof(Bill));
         }
 
-        var createdByUser = await _userService.GetUser(bill.CreatedBy);
-        var paidByUser = await _userService.GetUser(bill.PaidBy);
-        var billAllocationUsers = await _userService.GetUsers(bill.BillAllocations.Select(x => x.UserId).ToHashSet(), cancellationToken);
+        var createdByUserResult = await _userService.GetUser(bill.CreatedBy);
 
-        return new BillDto(
-            bill.Id,
-            bill.PaidBy,
-            paidByUser.Name,
-            bill.Amount,
-            bill.Comment,
-            createdByUser.Name,
-            bill.CreatedDate,
-            bill.BillAllocations.Select(x =>
-                new BillAllocationDto(
-                    x.Id,
-                    x.UserId,
-                    billAllocationUsers.First(allocationUser => allocationUser.Id == x.UserId).Name,
-                    x.Amount,
-                    x.PaidAmount)));
+        if (createdByUserResult is not Result.ISuccessResult<UserDto> createdByUser)
+        {
+            return Result.Failure<BillDto, UserDto>(createdByUserResult);
+        }
+
+        var paidByUserResult = await _userService.GetUser(bill.PaidBy);
+
+        if (paidByUserResult is not Result.ISuccessResult<UserDto> paidByUser)
+        {
+            return Result.Failure<BillDto, UserDto>(paidByUserResult);
+        }
+
+        var billAllocationUsersResult = await _userService.GetUsers(bill.BillAllocations.Select(x => x.UserId).ToHashSet(), cancellationToken);
+
+        if (billAllocationUsersResult is not Result.ISuccessResult<IEnumerable<UserDto>> billAllocationUsers)
+        {
+            return Result.Failure<BillDto, IEnumerable<UserDto>>(billAllocationUsersResult);
+        }
+        
+        return Result.Success(
+            new BillDto(
+                bill.Id,
+                bill.PaidBy,
+                paidByUser.Result.Name,
+                bill.Amount,
+                bill.Comment,
+                createdByUser.Result.Name,
+                bill.CreatedDate,
+                bill.BillAllocations.Select(x =>
+                    new BillAllocationDto(
+                        x.Id,
+                        x.UserId,
+                        billAllocationUsers.Result.First(allocationUser => allocationUser.Id == x.UserId).Name,
+                        x.Amount,
+                        x.PaidAmount))));
     }
 
     public async Task<long> UpsertBill(UserClaims user, UpsertBillDto upsertBill, CancellationToken cancellationToken)

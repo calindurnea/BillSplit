@@ -44,7 +44,7 @@ public class UsersController : ControllerBase
         {
             return ResultExtensions.HandleFailedResult(userResult);
         }
-        
+
         var result = await _userService.GetUser(userClaims.Result.Id);
         return ResultExtensions.HandleResult(result, Ok);
     }
@@ -58,8 +58,8 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
     {
-        var users = await _userService.GetUsers(cancellationToken);
-        return Ok(users);
+        var result = await _userService.GetUsers(cancellationToken);
+        return ResultExtensions.HandleResult(result, Ok);
     }
 
     /// <summary>
@@ -72,8 +72,8 @@ public class UsersController : ControllerBase
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUserWithId([FromRoute, BindRequired] long id, CancellationToken cancellationToken)
     {
-        var user = await _userService.GetUser(id);
-        return Ok(user);
+        var result = await _userService.GetUser(id);
+        return ResultExtensions.HandleResult(result, Ok);
     }
 
     /// <summary>
@@ -96,14 +96,14 @@ public class UsersController : ControllerBase
         {
             return ResultExtensions.HandleFailedResult(userResult);
         }
-        
+
         if (user.Result.Id != id)
         {
             return ResultExtensions.HandleFailedResult(Result.Failure<UserClaims>("You can only update your own information", HttpStatusCode.Forbidden));
         }
 
-        await _userService.UpdateUser(id, upsertUser);
-        return NoContent();
+        var result = await _userService.UpdateUser(id, upsertUser);
+        return ResultExtensions.HandleResult(result, NoContent());
     }
 
     /// <summary>
@@ -119,7 +119,10 @@ public class UsersController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> CreateUser([FromBody] UpsertUserDto upsertUser, CancellationToken cancellationToken)
     {
-        var id = await _userService.CreateUser(upsertUser);
-        return CreatedAtAction(nameof(GetUserWithId), new { id }, new { id });
+        var result = await _userService.CreateUser(upsertUser);
+        return ResultExtensions.HandleResult(result,
+            id => CreatedAtAction(nameof(GetUserWithId),
+                new { id },
+                new { id }));
     }
 }

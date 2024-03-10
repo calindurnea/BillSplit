@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using BillSplit.Api.Extensions;
 using BillSplit.Contracts.Bill;
+using BillSplit.Contracts.User;
+using BillSplit.Domain.ResultHandling;
 using BillSplit.Services.Abstractions.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -38,8 +40,14 @@ public class BillsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetBillById([FromRoute, BindRequired] long id, CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        var billDto = await _billService.GetBill(user, id, cancellationToken);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        var billDto = await _billService.GetBill(user.Result, id, cancellationToken);
         return Ok(billDto);
     }
 
@@ -54,8 +62,14 @@ public class BillsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpsertBill([FromBody, Required] UpsertBillDto upsertBill, CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        var id = await _billService.UpsertBill(user, upsertBill, cancellationToken);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        var id = await _billService.UpsertBill(user.Result, upsertBill, cancellationToken);
         return CreatedAtAction(nameof(GetBillById), new { id }, new { id });
     }
 
@@ -69,8 +83,14 @@ public class BillsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteBill([FromRoute, BindRequired] long id, CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        await _billService.Delete(user, id, cancellationToken);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        await _billService.Delete(user.Result, id, cancellationToken);
         return NoContent();
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System.Globalization;
+using System.Net;
+using BillSplit.Contracts.Authorization;
 using BillSplit.Contracts.User;
 using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
@@ -19,7 +21,7 @@ internal sealed class UserService : IUserService
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
     }
 
-    public async Task<long> CreateUser(UpsertUserDto request)
+    public async Task<IResult<long>> CreateUser(UpsertUserDto request)
     {
         var result = await _userManager.CreateAsync(new User
         {
@@ -32,51 +34,82 @@ internal sealed class UserService : IUserService
 
         if (!result.Succeeded)
         {
-            throw new UserCreationException("Request was not valid. Reason(s): " + string.Join(", ", result.Errors.Select(x => x.Description)));
+            return Result.Failure<long>(
+                "User creation failed",
+                HttpStatusCode.BadRequest,
+                result.Errors.Select(x => x.Description).ToArray());
         }
 
-        var user = (await _userManager.FindByEmailAsync(request.Email)).ThrowIfNull();
-        return user.Id;
+        var user = await _userManager.FindByEmailAsync(request.Email);
 
+        if (user is null)
+        {
+            return Result.Failure<long>("The specified user does not exist", HttpStatusCode.NotFound);
+        }
+
+        return Result.Success(user.Id);
     }
 
-    public async Task UpdateUser(long id, UpsertUserDto request)
+    public async Task<IResult<bool>> UpdateUser(long id, UpsertUserDto request)
     {
-        var user = (await _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture))).ThrowIfNull();
+        var user = await _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture));
 
+        if (user is null)
+        {
+            return Result.Failure<bool>("The specified user does not exist", HttpStatusCode.NotFound);
+        }
+        
         user.Name = request.Name;
         user.Email = request.Email;
         user.PhoneNumber = request.PhoneNumber;
         user.UpdatedDate = DateTime.UtcNow;
         user.UpdatedBy = id;
 
-        await _userManager.UpdateAsync(user);
+        var result = await _userManager.UpdateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            return Result.Failure<bool>(
+                "User update failed",
+                HttpStatusCode.BadRequest,
+                result.Errors.Select(x => x.Description).ToArray());
+        }
+
+        return Result.Success(true);
     }
 
-    public async Task<IEnumerable<UserDto>> GetUsers(CancellationToken cancellationToken)
+    public async Task<IResult<IEnumerable<UserDto>>> GetUsers(CancellationToken cancellationToken)
     {
         var users = await _userManager.Users.ToListAsync(cancellationToken);
-        return users.Select(MapToDto);
+        return Result.Success(users.Select(MapToDto));
     }
 
     public async Task<IResult<UserDto>> GetUser(long id)
     {
-        var user = (await _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture))).ThrowIfNull(id);
-        return MapToDto(user);
+        var user = await _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture));
+
+        if (user is null)
+        {
+            return Result.Failure<UserDto>("The specified user does not exist", HttpStatusCode.NotFound);
+        }
+
+        return Result.Success(MapToDto(user));
     }
 
-    public async Task<IEnumerable<UserDto>> GetUsers(ISet<long> ids, CancellationToken cancellationToken)
+    public async Task<IResult<IEnumerable<UserDto>>> GetUsers(ISet<long> ids, CancellationToken cancellationToken)
     {
-        var users = (await _userManager.Users.Where(x => ids.Contains(x.Id)).ToListAsync(cancellationToken)).ThrowIfNull();
+        var users = await _userManager.Users.Where(x => ids.Contains(x.Id)).ToListAsync(cancellationToken);
 
         if (users.Count == ids.Count)
         {
-            return users.Select(MapToDto);
+            return Result.Success(users.Select(MapToDto));
         }
 
         var idsNotFound = ids.Where(id => users.Select(u => u.Id).All(uid => uid != id));
-        throw new NotFoundException(typeof(User), idsNotFound.ToArray());
-
+        return Result.Failure<IEnumerable<UserDto>>(
+            "Some of the specified ids could not be found", 
+            HttpStatusCode.NotFound,
+            idsNotFound.Select(missingId=> $"Missing id: {missingId}").ToArray());
     }
 
     private static UserDto MapToDto(User entity)

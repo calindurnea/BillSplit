@@ -1,9 +1,11 @@
-﻿using BillSplit.Contracts.Bill;
+﻿using System.Collections;
+using BillSplit.Contracts.Bill;
 using BillSplit.Contracts.BillAllocation;
 using BillSplit.Contracts.BillGroup;
 using BillSplit.Contracts.User;
 using BillSplit.Domain.Exceptions;
 using BillSplit.Domain.Models;
+using BillSplit.Domain.ResultHandling;
 using BillSplit.Persistence.Repositories.Abstractions;
 using BillSplit.Services.Abstractions.Interfaces;
 using BillSplit.Services.Extensions;
@@ -32,7 +34,7 @@ internal sealed class BillGroupService : IBillGroupService
         _billAllocationRepository = billAllocationRepository ?? throw new ArgumentNullException(nameof(billAllocationRepository));
     }
 
-    public async Task<BillGroupDto> GetBillGroups(UserClaims user, long id, CancellationToken cancellationToken)
+    public async Task<IResult<BillGroupDto>> GetBillGroups(UserClaims user, long id, CancellationToken cancellationToken)
     {
         var billGroup = (await _billGroupRepository.GetBillGroups(cancellationToken, true, id)).FirstOrDefault().ThrowIfNull(id);
 
@@ -43,22 +45,37 @@ internal sealed class BillGroupService : IBillGroupService
 
         var bills = (await _billRepository.GetGroupBills(billGroup.Id, true, cancellationToken)).ToList();
 
-        var billsCreatedBy = _userService.GetUsers(bills.Select(x => x.CreatedBy).ToHashSet(), cancellationToken);
-        var billsPaidBy = _userService.GetUsers(bills.Select(x => x.PaidBy).ToHashSet(), cancellationToken);
+        var billsCreatedByTask = _userService.GetUsers(bills.Select(x => x.CreatedBy).ToHashSet(), cancellationToken);
+        var billsPaidByTask = _userService.GetUsers(bills.Select(x => x.PaidBy).ToHashSet(), cancellationToken);
 
         var tasks = new List<Task>();
-        tasks.AddRange(new Task[] { billsCreatedBy, billsPaidBy });
+        tasks.AddRange(new Task[] { billsCreatedByTask, billsPaidByTask });
 
         await Task.WhenAll(tasks);
 
+        if (billsCreatedByTask.Result is not Result.ISuccessResult<IEnumerable<UserDto>> billsCreatedBy)
+        {
+            return Result.Failure<BillGroupDto, IEnumerable<UserDto>>(billsCreatedByTask.Result);
+        }
+
+        if (billsPaidByTask.Result is not Result.ISuccessResult<IEnumerable<UserDto>> billsPaidBy)
+        {
+            return Result.Failure<BillGroupDto, IEnumerable<UserDto>>(billsPaidByTask.Result);
+        }
+        
         var userIds = bills
             .SelectMany(x => x.BillAllocations)
             .Select(x => x.UserId)
             .ToHashSet();
 
-        var billsAllocationsUsers = await _userService.GetUsers(userIds, cancellationToken);
+        var billsAllocationsUsersResult = await _userService.GetUsers(userIds, cancellationToken);
 
-        return new BillGroupDto(
+        if (billsAllocationsUsersResult is not Result.ISuccessResult<IEnumerable<UserDto>> billAllocationUsers)
+        {
+            return Result.Failure<BillGroupDto, IEnumerable<UserDto>>(billsAllocationsUsersResult);
+        }
+        
+        return Result.Success(new BillGroupDto(
             billGroup.Id,
             billGroup.Name,
             bills.Select(bill => new BillDto(
@@ -73,9 +90,9 @@ internal sealed class BillGroupService : IBillGroupService
                     .Select(allocation => new BillAllocationDto(
                         allocation.Id,
                         allocation.UserId,
-                        billsAllocationsUsers.First(x => x.Id == allocation.UserId).Name,
+                        billAllocationUsers.Result.First(x => x.Id == allocation.UserId).Name,
                         allocation.Amount,
-                        allocation.PaidAmount)))));
+                        allocation.PaidAmount))))));
     }
 
     public async Task<IEnumerable<UserBillGroupDto>> GetBillGroups(UserClaims user, CancellationToken cancellationToken)

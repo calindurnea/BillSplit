@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using BillSplit.Api.Extensions;
 using BillSplit.Contracts.BillGroup;
+using BillSplit.Contracts.User;
+using BillSplit.Domain.ResultHandling;
 using BillSplit.Services.Abstractions.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -36,8 +38,14 @@ public class BillGroupsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<UserBillGroupDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllBillGroups(CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        var billGroups = await _billGroupsService.GetBillGroups(user, cancellationToken);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        var billGroups = await _billGroupsService.GetBillGroups(user.Result, cancellationToken);
         return Ok(billGroups);
     }
 
@@ -51,9 +59,15 @@ public class BillGroupsController : ControllerBase
     [ProducesResponseType(typeof(BillGroupDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBillGroupById([FromRoute, BindRequired] long id, CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        var billGroup = await _billGroupsService.GetBillGroups(user, id, cancellationToken);
-        return Ok(billGroup);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        var result = await _billGroupsService.GetBillGroups(user.Result, id, cancellationToken);
+        return ResultExtensions.HandleResult(result, Ok);
     }
 
     /// <summary>
@@ -68,8 +82,14 @@ public class BillGroupsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AddBillGroupUser([FromRoute, BindRequired] long id, [FromQuery, BindRequired] long userId, CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        await _billGroupsService.AddBillGroupUser(user, id, userId, cancellationToken);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        await _billGroupsService.AddBillGroupUser(user.Result, id, userId, cancellationToken);
         return NoContent();
     }
 
@@ -85,8 +105,14 @@ public class BillGroupsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> RemoveBillGroupUser([FromRoute, BindRequired] long id, [FromQuery, BindRequired] long userId, CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        await _billGroupsService.RemoveBillGroupUser(user, id, userId, cancellationToken);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        await _billGroupsService.RemoveBillGroupUser(user.Result, id, userId, cancellationToken);
         return NoContent();
     }
 
@@ -102,8 +128,14 @@ public class BillGroupsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateBillGroupName([FromRoute, BindRequired] long id, [FromBody, Required] UpdateBillGroupNameDto updateBillGroupName, CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        await _billGroupsService.UpdateBillGroupName(user, id, updateBillGroupName, cancellationToken);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        await _billGroupsService.UpdateBillGroupName(user.Result, id, updateBillGroupName, cancellationToken);
         return NoContent();
     }
 
@@ -118,8 +150,14 @@ public class BillGroupsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateBillGroup([FromBody, Required] CreateBillGroupDto createBillGroup, CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        var id = await _billGroupsService.CreateBillGroup(user, createBillGroup, cancellationToken);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        var id = await _billGroupsService.CreateBillGroup(user.Result, createBillGroup, cancellationToken);
         return CreatedAtAction(nameof(GetBillGroupById), new { id }, new { id });
     }
 
@@ -134,8 +172,14 @@ public class BillGroupsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> DeleteBillGroup([FromRoute, BindRequired] long id, CancellationToken cancellationToken)
     {
-        var user = HttpContext.User.GetCurrentUser();
-        await _billGroupsService.DeleteBillGroup(user, id, cancellationToken);
+        var userResult = HttpContext.User.GetCurrentUserResult();
+
+        if (userResult is not Result.ISuccessResult<UserClaims> user)
+        {
+            return ResultExtensions.HandleFailedResult(userResult);
+        }
+        
+        await _billGroupsService.DeleteBillGroup(user.Result, id, cancellationToken);
         return NoContent();
     }
 }
